@@ -1,0 +1,293 @@
+header {
+    z-index: 100;
+}
+
+header nav {
+    z-index: 90;
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    background: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(255,255,255,0) 100%);
+}
+ 
+nav.nav-white {
+    background: white;
+    color: black;
+    box-shadow: var(--box-shadow);
+}
+ 
+.header-link {
+    height: 100%;
+}
+ 
+/* hamburger menu */
+.nav-main-menu-toggle {
+    display: none;
+}
+ 
+.nav-main-menu-toggle-icon {
+    position: absolute;
+    z-index: 9999;
+    width: 50px;
+    height: 50px;
+    top: 34px;
+    right: 10px;
+    cursor: pointer;
+}
+ 
+.nav-main-menu-toggle-icon span {
+    width: 50%;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+}
+
+.nav-white .nav-main-menu-toggle-icon span::before,
+.nav-white .nav-main-menu-toggle-icon span,
+.nav-white .nav-main-menu-toggle-icon span::after {
+    background: var(--color-main-800);
+}
+ 
+.nav-main-menu-toggle-icon span::before,
+.nav-main-menu-toggle-icon span,
+.nav-main-menu-toggle-icon span::after {
+    background: white;
+    height: 2px;
+    position: absolute;
+    content: '';
+    transition: all .4s ease-in-out;
+    border-radius: 5px;
+}
+ 
+.nav-main-menu-toggle-icon span::before {
+    width: 100%;
+    top: -7px;
+}
+ 
+.nav-main-menu-toggle-icon span::after {
+    width: 100%;
+    top: 7px;
+}
+ 
+.nav-main-menu-toggle:checked~.nav-main-menu-toggle-icon span {
+    background: transparent;
+    transform: rotate(180deg) scale(0.8);
+}
+ 
+.nav-main-menu-toggle:checked~.nav-main-menu-toggle-icon span::before,
+.nav-main-menu-toggle:checked~.nav-main-menu-toggle-icon span::after {
+    top: 0;
+ }
+ 
+.nav-main-menu-toggle:checked~.nav-main-menu-toggle-icon span::before {
+    transform: rotate(45deg);
+}
+ 
+.nav-main-menu-toggle:checked~.nav-main-menu-toggle-icon span::after {
+    transform: rotate(-45deg);
+}
+ 
+header .nav-main-drawer {
+    position: absolute;
+    background-color: var(--color-background);
+    color: var(--color-main-800);
+    top: 0px;
+    left: 0;
+    //opacity: 0;
+    transform: translateY(-100%);
+    transition: transform 300ms ease-in;
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: -1;
+}
+
+header .nav-main {
+    width: 100%;
+}
+ 
+header .nav-main > ul {
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+    justify-content: center;
+    list-style-type: none;
+    padding: var(--gap);
+    width: 100%;
+    margin: auto;
+}
+ 
+header .nav-main-menu-toggle:checked~.nav-main-drawer {
+    transform: translateY(118px);
+    transition: transform 400ms ease-out;
+}
+ 
+header .nav-main a {
+    display: inline-block;
+    padding: 10px 10px;
+    transition: .3s background-color;
+    position: relative;
+    width: 100%;
+    border-radius: 6px;
+
+    &:hover,
+    &:active {
+        background-color: var(--color-main-100);
+    }
+}
+
+/* style call to action in header */ header .menu > .menu-item:last-of-type a,
+header .menu > .menu-item:nth-last-of-type(2) a {
+    overflow: hidden;
+}
+ 
+header ul.sub-menu {
+    list-style-type: none;
+    border-radius: 5px;
+    transform-origin: top;
+    padding-left: 30px;
+    margin: 0px;
+    z-index: 100;
+}
+
+header ul.sub-menu a {
+    margin: 0px;
+    padding: 5px;
+}
+
+@media only screen and (min-width: 980px) {
+    .nav-main-menu-toggle-icon {
+        display: none;
+    }
+
+    header .nav-main-drawer {
+        margin-left: auto;
+    }
+
+    header .nav-main-drawer {
+        top: 0;
+        color: white;
+        position: relative;
+        background: none;
+        opacity: 1;
+        transform: translateY(0px) translateX(0px) !important;
+        transition: 0s;
+        width: auto;
+        min-height: 100%;
+        display: inline-block;
+        box-shadow: none;
+    }
+
+    .nav-white .nav-main-drawer {
+        color: black;
+    }
+        
+    header .nav-main ul {
+        display: flex;
+        gap: var(--gap);
+        list-style-type: none;
+        flex-direction: row;
+        align-items: flex-start;
+        width: 100%;
+        padding: 0px;
+    }
+        
+    header .nav-main ul li a {
+        padding: 10px 0px;
+        display: inline-block;
+        margin: 10px auto;
+
+        &:hover,
+        &:active {
+            background: none;
+        }
+    }
+    
+    /* style call to action in header */ header .menu > .menu-item:last-of-type a,
+    header .menu > .menu-item:nth-last-of-type(2) a {
+        background-color: var(--color-main-800);
+        color: white;
+        border-radius: var(--br-small);
+        padding: 10px 16px;
+        margin: 10px 0px;
+    }
+
+    header .menu > .menu-item:nth-last-of-type(2) {
+        a {
+            background-color: var(--color-gray-150);
+            color: black;
+        }
+        margin-right: -20px;
+    }
+
+    header .menu > .menu-item:not(:last-of-type, :nth-last-of-type(2), .menu-item-has-children) a::before {
+        transition: .3s transform, .3s opacity;
+        height: 1px;
+        content: "";
+        position: absolute;
+        background-color: white;
+        width: 100%;
+        bottom: 0px;
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    header nav.nav-white .menu > .menu-item a::before {
+        background-color: var(--color-main-800);
+    }
+
+    header .menu .menu-item.current-menu-item > a::before,
+    header .menu > .menu-item:not(.menu-item-has-children):hover > a::before {
+        transform: translateY(0px);
+        opacity: 1;
+    }
+
+    header .menu-item-has-children > a::after {
+        font-family: "Bootstrap-icons";
+        content: "\F282";
+        line-height: 0;
+        margin-left: 5px;
+        display: inline-block;
+        transform: translateY(3px);
+    }
+        
+    header ul.sub-menu {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border-radius: var(--br-small);
+        transition: .3s opacity, .3s transform;
+        opacity: 0;
+        transform: scaleY(0);
+        transform-origin: top;
+        padding: 6px;
+        z-index: 100;
+        width: auto;
+        gap: 6px;
+        box-shadow: var(--box-shadow);
+
+        li {
+            width: 100%;
+        }
+    }
+
+    header ul.sub-menu li a {
+        color: var(--color-main-800);
+        margin: auto;
+        padding: 6px 10px;
+
+        &:hover {
+            background-color: var(--color-main-100);
+        }
+    }
+        
+    header .menu-item-has-children:hover .sub-menu {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+}
