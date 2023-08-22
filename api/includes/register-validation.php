@@ -25,13 +25,55 @@ function checkCode($family_id) {
         array_push($problems, "Family code is invalid.");
     } else if ($row_count_used_code >= 1) {
         // code already registered
-        array_push($problems, "Family code has already been registered. Please use your own, unique code.");
+        array_push($problems, "Family code has already been registered. Please use your own, unique code. Contact us if you think this is a mistake.");
     }
     
     $query_valid_code->close();
     $query_used_code->close();
 
     return $problems;
+}
+
+function addAttempt($IP) {
+    $conn = dbConnect('read');
+    $add_attempt = $conn->prepare("INSERT INTO failed_attempts (ip_address, attempts, last_attempt)
+        VALUES (?, 1, NOW())
+
+        ON DUPLICATE KEY UPDATE
+        attempts = attempts + 1,
+        last_attempt = NOW();
+    ");
+    if (!$add_attempt) {
+        echo "Error in SQL statement: " . $conn->error;
+    } else {
+        // Bind the parameter and execute the query
+        $add_attempt->bind_param("s", $IP);
+        $add_attempt->execute();
+        $add_attempt->close();
+    }
+    $conn->close();
+}
+
+function getAttempts($IP) {
+    $conn = dbConnect('read');
+    $get_attempts = $conn->prepare("SELECT attempts FROM failed_attempts WHERE ip_address = ?");
+    $get_attempts->bind_param("s", $IP);
+    $get_attempts->execute();
+    $get_attempts->bind_result($attemptCount);
+    $get_attempts->fetch();
+    $get_attempts->close();
+    $conn->close();
+
+    return $attemptCount;
+}
+
+function resetAttempts($IP) {
+    $conn = dbConnect('read');
+    $reset_attempts = $conn->prepare("UPDATE failed_attempts SET attempts = 0 WHERE ip_address = ?");
+    $reset_attempts->bind_param("s", $IP);
+    $reset_attempts->execute();
+    $reset_attempts->close();
+    $conn->close();
 }
 
 function validateRegistration($edit = false) {

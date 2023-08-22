@@ -18,115 +18,6 @@ get_header('archive');
         </section>
         <?php endwhile; else: endif; ?>
 
-        <section hidden id="family-code-form" class="floating-card">
-            <form class="add-edit-family" action="" method="post">
-                <div class="registerForm-section family-info">
-                    <h2>Family Information</h2>
-
-                    <div class="grid grid-3">
-                        <?php if ($edit_family) : ?>
-                            <label for="family-id">Family Code<i>cannot be edited</i></label>
-                            <input class="span-2" id="family-id" name="family-id" type="text" minlength="6" maxlength="6" value="<?php echo $family_info['family_id']; ?>" readonly required>
-                            
-                            <label for="last-name">Last Name</label>
-                            <input class="span-2" id="last-name" name="last-name" type="text" required placeholder="Smith" autocomplete="off" value="<?php echo $family_info['family_name']; ?>">
-
-                            <label for="email">Email</label>
-                            <input class="span-2" id="email" name="email" type="email" required placeholder="name@example.com" autocomplete="off" value="<?php echo $family_info['email']; ?>">
-
-                            <label for="phone">Phone</label>
-                            <input class="span-2" id="phone" name="phone" type="tel" required placeholder="1112223333" autocomplete="off" value="<?php echo $family_info['phone']; ?>">
-                        <?php else : ?>
-                            <label for="family-id">Family Code</label>
-                            <input class="span-2" id="family-id" name="family-id" type="text" minlength="6" maxlength="6" required onkeyup="validateCode()">
-                            
-                            <label for="last-name">Last Name</label>
-                            <input class="span-2" id="last-name" name="last-name" type="text" required placeholder="Smith" autocomplete="off">
-
-                            <label for="email">Email</label>
-                            <input class="span-2" id="email" name="email" type="email" required placeholder="name@example.com" autocomplete="off">
-
-                            <label for="phone">Phone</label>
-                            <input class="span-2" id="phone" name="phone" type="tel" required placeholder="1112223333" autocomplete="off">
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <div class="registerForm-section">
-                    <div>
-                        <h2>Family Members</h2>
-
-                        <p>Total Family Members: <span id="family-members-total"><?php
-                            if($edit_family) {
-                                echo count($members);
-                            } else {
-                                echo "1";
-                            }?>
-                            </span>
-                        </p>
-
-                        <span id="family-members-table">
-                            <div class="form-row">
-                                <p>#</p>
-                                <p id="name-label">First Name</p>
-                                <p id="age-label">Age (years)</p>
-                                <p id="gift-label">Gift Preference</p>
-                            </div>
-                            <?php if ($edit_family) : ?>
-                                <input name="change-family" type="hidden" value="true" required>
-                                <?php $n = 1;
-                                foreach($members as $member) : ?>
-                                    <div class="form-row" id="member-<? echo $n ?>" data-member="<? echo $n ?>">
-                                        <strong><? echo $n ?></strong>
-                                        <input id="first-name-<? echo $n ?>" name="first-name[]" placeholder="First Name" type="text" value="<? echo $member['first name']?>" required aria-labelledby="name-label">
-                                        <input id="age-<? echo $n ?>" name="age[]" placeholder="Age" type="number" min="0" max="120" value="<? echo $member['age']?>" required aria-labelledby="age-label">
-                                        <span>
-                                            <select required disabled name="gift-preference[]" id="gift-preference-<? echo $n ?>" aria-labelledby="gift-label">
-                                                <option value="" disabled selected>Please specify age first</option>
-                                            </select>
-                                        </span>
-                                    </div>
-                                <?php $n++ ?>
-                            <?php endforeach; else: ?>
-                            <div class="form-row" id="member-1" data-member="1">
-                                <strong>1</strong>
-                                <input id="first-name-1" name="first-name[]" placeholder="First Name" type="text" required>
-                                <input id="age-1" name="age[]" placeholder="Age" type="number" min="0" max="120" required>
-                                <span>
-                                    <select required disabled name="gift-preference[]" id="gift-preference-1">
-                                        <option value="" disabled selected>Please specify age first</option>
-                                    </select>
-                                </span>
-                            </div>
-                            <?php endif; ?>
-                        </span>
-
-                        <div class="buttons">
-                            <button type="button" onclick="addMember()">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
-                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                                </svg> &nbsp;
-                                Add a Family Member
-                            </button>
-
-                            <button class="button-secondary" type="button" onclick="removeMember()">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
-                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
-                                </svg> &nbsp;
-                                Delete Bottom Row
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <p>By submitting this form, they consent to receiving email updates about the event.</p>
-
-                <button class="button button-primary" type="submit">Submit</button>
-            </form>
-        </section>
-
         <section class="registerForm-main registerForm-admin">
             <form action="" method="post" id="register-form">
                 <div class="card" id="family-information">
@@ -137,9 +28,9 @@ get_header('archive');
                     </label>
                     <span id="span-fam-code" class="input-md">
                         <input id="fam-code" name="fam-id" type="text" minlength="6" maxlength="6" required data-validate="">
-                        <span class="form-error"></span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </span>
+                    <div class="form-error" id="error-fam-code"></div>
 
                     <label for="fam-members">
                         <strong>Family Members</strong>
@@ -179,11 +70,11 @@ get_header('archive');
                     <span id="family-gift-options">
                         <span class="checkboxes">
                             <label for="no-preference">
-                                <input class="alt-check" type="radio" name="fam-gift" id="no-preference" value="No Preference">
+                                <input class="alt-check" type="radio" name="fam-gift" id="no-preference" value="No Preference" required>
                                 <span class="checkbox">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 </span>
-                                <span data-en="No Preference" data-sp="Sin Preferencia" data-hm="Tsis Txhob">No Preference</span>
+                                <span>No Preference</span>
                             </label>
                         </span>
                     </span>

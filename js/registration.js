@@ -329,7 +329,7 @@ function addFamilyValidation(famInfo) {
 
     famInfo.famCode.addEventListener("keyup", (event) => { 
         const famCodeCheck = document.querySelector("#span-fam-code svg");
-        const famCodeError = document.querySelector("#span-fam-code .form-error");
+        const famCodeError = document.querySelector("#error-fam-code");
         const url = "https://registration.communitychristmasfoxcities.org/fetch-code-validation.php";
 
         if(famInfo.famCode.value.length == 6) {
@@ -505,7 +505,7 @@ function setFamilyGifts() {
         let newOption = `
             <span class="checkboxes">
                 <label for="` + giftId + `">
-                    <input class="alt-check" type="radio" name="fam-gift" id="` + giftId + `" value="` + giftName + `">
+                    <input class="alt-check" type="radio" name="fam-gift" id="` + giftId + `" value="` + giftName + ` required">
                     <span class="checkbox">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </span>

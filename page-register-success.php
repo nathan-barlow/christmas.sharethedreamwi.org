@@ -39,7 +39,7 @@ get_header('archive');
             </div>
 
             <div id="survey-2">
-                <label for="message">Leave a comment?</label>
+                <label for="message">Leave a comment? (optional)</label>
                 <textarea name="message" id="message" cols="30" rows="10"></textarea>
                 <button class="button-primary" type="submit">
                     Submit

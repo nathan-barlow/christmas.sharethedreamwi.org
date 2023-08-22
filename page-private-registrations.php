@@ -242,6 +242,14 @@ get_header('archive');
                         <i class="bi bi-arrow-clockwise"></i>
                         <p>Reset Printed</p>
                     </button>
+                    <button class="options-menu-item" onclick="markAllPacked()">
+                        <i class="bi bi-check2"></i>
+                        <p>Mark Visible as Packed</p>
+                    </button>
+                    <button class="options-menu-item" onclick="markAllNotPacked()">
+                        <i class="bi bi-square"></i>
+                        <p>Mark Visible as Not Packed</p>
+                    </button>
                 </div>
             </div>
 
@@ -730,11 +738,17 @@ get_header('archive');
         }
     }
 
-    function togglePacked(number) {
+    function togglePacked(number, pack=null) {
         let family = document.querySelector('#family-' + number);
         let formData = new FormData();
         formData.append('number', number);
-        formData.append('pack', family.dataset.packed);
+        if(!pack) {
+            formData.append('pack', family.dataset.packed);
+        } else if(pack == "yes") {
+            formData.append('pack', 0);
+        } else if(pack == "no") {
+            formData.append('pack', 1);
+        }
 
         let url = 'https://registration.communitychristmasfoxcities.org/private/toggle-packed.php';
         let headers = new Headers();
@@ -759,6 +773,24 @@ get_header('archive');
                 console.error(body);
             }
         });
+    }
+
+    function markAllPacked() {
+        let visibleFamilies = document.querySelectorAll("#family-member-cards .family-card:not(.hide)");
+
+        for(let i = 0; i < printed.length; i++) {
+            let number = parseInt(printed[i].querySelector(".fam-number").innerText);
+            togglePacked(number, "yes");
+        }
+    }
+
+    function markAllNotPacked() {
+        let visibleFamilies = document.querySelectorAll("#family-member-cards .family-card:not(.hide)");
+
+        for(let i = 0; i < printed.length; i++) {
+            let number = parseInt(printed[i].querySelector(".fam-number").innerText);
+            togglePacked(number, "no");
+        }
     }
 
     function generatePacked() {

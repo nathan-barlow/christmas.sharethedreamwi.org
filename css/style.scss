@@ -1032,7 +1032,7 @@ form:not(.sib_signup_form),
    }
 
    .alt-check {
-      visibility: hidden;
+      opacity: 0;
       height: 0;
       width: 0;
       order: 4;
@@ -1047,7 +1047,7 @@ form:not(.sib_signup_form),
       display: block;
       border-radius: 100px;
       position: relative;
-      transition: 500ms cubic-bezier(.8,0,.2,1);
+      transition: background 500ms cubic-bezier(.8,0,.2,1);
    }
    
    .toggle:after {
@@ -1064,6 +1064,11 @@ form:not(.sib_signup_form),
    
    input:checked + .toggle {
       background: var(--color-success-200);
+   }
+
+   input:focus + .toggle {
+      outline: 1px solid var(--color-gray-400);
+      outline-offset: 2px;
    }
    
    input:checked + .toggle:after {
@@ -1096,6 +1101,11 @@ form:not(.sib_signup_form),
    
    input:checked + .checkbox svg {
       stroke-dashoffset: 49.25483322143555px;
+   }
+
+   input:focus + .checkbox {
+      outline: 1px solid var(--color-gray-400);
+      outline-offset: 2px;
    }
 
    #span-fam-code {
@@ -1327,6 +1337,10 @@ nav.nav-secondary {
       font-size: 2em;
    }
 
+   .jump-to-families {
+      display: none;
+   }
+
    .totals-section {
       p {
          font-weight: bold;
@@ -1427,7 +1441,6 @@ nav.nav-secondary {
             background-color: white;
             margin: 0px;
             border: 1px solid var(--color-gray-300);
-            height: 38px;
             border-radius: 0px;
             border-right-width: 0px;
          }
@@ -1676,6 +1689,19 @@ nav.nav-secondary {
    }
 
    table.family-members {
+      td {
+         word-break: break-all;
+         
+      }
+
+      td:nth-of-type(1) {
+         min-width: 25vw;
+      }
+
+      td:nth-of-type(2) {
+         min-width: 48px;
+      }
+
       td:nth-of-type(3) {
          width: 100%;
       }
@@ -1915,6 +1941,16 @@ form.add-edit-family {
 
    .donate-options {
       order: 1;
+   }
+
+   .registrations-dashboard .jump-to-families {
+      display: block;
+   }
+
+   .filter-options {
+      button {
+         height: 38px;
+      }
    }
 
    .register-form {

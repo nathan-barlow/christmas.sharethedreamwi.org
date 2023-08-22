@@ -60,9 +60,9 @@ get_header('archive');
                         </label>
                         <span id="span-fam-code" class="input-md">
                             <input id="fam-code" name="fam-id" type="text" minlength="6" maxlength="6" required data-validate="">
-                            <span class="form-error"></span>
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         </span>
+                        <div class="form-error" id="error-fam-code"></div>
 
                         <label for="fam-members">
                             <strong data-en="Family Members" data-sp="Miembros de la Familia" data-hm="Tsev Neeg">Family Members</strong>
@@ -111,7 +111,7 @@ get_header('archive');
                         <span id="family-gift-options">
                             <span class="checkboxes">
                                 <label for="no-preference">
-                                    <input class="alt-check" type="radio" name="fam-gift" id="no-preference" value="No Preference">
+                                    <input class="alt-check" type="radio" name="fam-gift" id="no-preference" value="No Preference" required>
                                     <span class="checkbox">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                     </span>
