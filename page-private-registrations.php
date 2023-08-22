@@ -671,8 +671,6 @@ get_header('archive');
             currentFilter = filter;
         }
 
-        console.log(currentFilter);
-
         button_packed.classList.remove('active');
         packed.forEach(function(el) {
             el.classList.remove('hide');
@@ -778,8 +776,8 @@ get_header('archive');
     function markAllPacked() {
         let visibleFamilies = document.querySelectorAll("#family-member-cards .family-card:not(.hide)");
 
-        for(let i = 0; i < printed.length; i++) {
-            let number = parseInt(printed[i].querySelector(".fam-number").innerText);
+        for(let i = 0; i < visibleFamilies.length; i++) {
+            let number = parseInt(visibleFamilies[i].querySelector(".fam-number").innerText);
             togglePacked(number, "yes");
         }
     }
@@ -787,8 +785,8 @@ get_header('archive');
     function markAllNotPacked() {
         let visibleFamilies = document.querySelectorAll("#family-member-cards .family-card:not(.hide)");
 
-        for(let i = 0; i < printed.length; i++) {
-            let number = parseInt(printed[i].querySelector(".fam-number").innerText);
+        for(let i = 0; i < visibleFamilies.length; i++) {
+            let number = parseInt(visibleFamilies[i].querySelector(".fam-number").innerText);
             togglePacked(number, "no");
         }
     }
@@ -810,7 +808,6 @@ get_header('archive');
     };
 
     function formatPrint() {
-        console.log("before print");
         let cards = document.querySelectorAll("#family-member-cards .family-card:not(.hide)");
         document.getElementById("family-member-cards").classList.add("hide");
 

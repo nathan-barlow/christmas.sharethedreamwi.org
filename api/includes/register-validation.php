@@ -76,6 +76,25 @@ function resetAttempts($IP) {
     $conn->close();
 }
 
+function addLanguage($IP, $language) {
+    $conn = dbConnect('read');
+    $add_language = $conn->prepare("INSERT INTO language_changes (ip, language)
+        VALUES (?, ?)
+
+        ON DUPLICATE KEY UPDATE
+        language = VALUES(language)
+    ");
+    if (!$add_language) {
+        echo "Error in SQL statement: " . $conn->error;
+    } else {
+        // Bind the parameter and execute the query
+        $add_language->bind_param("ss", $IP, $language);
+        $add_language->execute();
+        $add_language->close();
+    }
+    $conn->close();
+}
+
 function validateRegistration($edit = false) {
     $conn = dbConnect('read');
     $problems = array();

@@ -546,5 +546,20 @@ function changeLanguage() {
                 }
                 break;
         }
+
+        let formData = new FormData();
+        formData.append('language', language);
+    
+        let url = 'https://registration.communitychristmasfoxcities.org/fetch-language.php';
+    
+        fetch(url, { method: 'POST', body: formData})
+            .then(function (response) {
+            return response.text();
+        })
+            .then(function (body) {
+            if(body != "") {
+                console.error(body);
+            }
+        });
     }
 }

@@ -2109,9 +2109,11 @@ form.add-edit-family {
             max-width: 420px;
 
             td {
+               min-width: 0px !important;
                text-overflow: ellipsis;
                overflow: hidden;
                max-width: 150px;
+               word-break: normal !important;
             }
 
             tbody tr:nth-of-type(10)::after {
