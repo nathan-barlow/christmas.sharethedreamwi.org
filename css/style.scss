@@ -1529,6 +1529,10 @@ nav.nav-secondary {
          }
       }
 
+      .buttons {
+         gap: .5rem;
+      }
+
       .family-gift {
          margin-top: .5rem;
          margin-bottom: 0;
@@ -1993,18 +1997,15 @@ form.add-edit-family {
       footer,
       h1,
       .card:not(.registrations),
-      .registrations > *:not(.family-member-cards),
+      .registrations > *:not(#print),
       .family-member-cards .edit-family,
-      .bi-printer-fill {
+      .bi-printer-fill,
+      .jump-to-families {
          display: none !important;
       }
 
       .grid:not(span.page-break) {
          display: block;
-      }
-
-      #family-member-cards {
-         display: none !important;
       }
 
       .registrations {
@@ -2016,8 +2017,9 @@ form.add-edit-family {
          }
 
          // container
-         .family-member-cards {
+         .page-break {
             gap: 25mm;
+            grid-template-columns: calc(50% - 12.5mm) calc(50% - 12.5mm) !important;
          }
    
          // child
@@ -2068,15 +2070,22 @@ form.add-edit-family {
          table.family-members {
             display: block !important;
             position: relative;
+            max-width: 420px;
 
-            tbody tr:nth-of-type(9)::after {
+            td {
+               text-overflow: ellipsis;
+               overflow: hidden;
+               max-width: 150px;
+            }
+
+            tbody tr:nth-of-type(10)::after {
                content: "\21e3";
                position: absolute;
                bottom: 3px;
                right: 10px;
             }
 
-            tbody tr:nth-of-type(n+10) {
+            tbody tr:nth-of-type(n+11) {
                display: none;
             }
          }

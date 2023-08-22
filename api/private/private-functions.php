@@ -126,8 +126,12 @@ function togglePacked($number, $pack) {
 
     $togglePacked->bind_param("s", $number);
     $togglePacked->execute();
+    if($togglePacked->affected_rows == 1) {
+        return "true";
+    } else {
+        return $togglePacked;
+    }
     $togglePacked->close();
-
     $conn->close();
 }
 

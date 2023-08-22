@@ -165,7 +165,7 @@ get_header('archive');
         <a href="/private-register-family">Register New Family</a>
         <a href="/private-event-settings">Event Settings</a>
     </nav>
-    <a class="float-right button button-main-100" href="#registrations"><i class="bi bi-arrow-down"></i>Jump To Families</a>
+    <a class="float-right button button-main-100 jump-to-families" href="#registrations"><i class="bi bi-arrow-down"></i>Jump To Families</a>
     <h1>Registrations</h1>
     <div class="grid">
         <div class="grid grid-2">
@@ -772,37 +772,48 @@ get_header('archive');
         notPacked.querySelector("strong").innerText = numNotPacked;
     };
 
-    window.addEventListener('beforeprint', formatPrint);
-    window.addEventListener('afterprint', printLabels);
-    window.addEventListener('afterprint', undoFormatPrint);
+    window.onload = function() {
+        window.addEventListener('beforeprint', formatPrint);
+        window.addEventListener('afterprint', undoFormatPrint);
+    };
 
     function formatPrint() {
+        console.log("before print");
         let cards = document.querySelectorAll("#family-member-cards .family-card:not(.hide)");
         document.getElementById("family-member-cards").classList.add("hide");
-        let printedFamilies = "<span id='print' class='family-member-cards grid'>";
 
-        let i = 0;
-        cards.forEach(function(card) {
-            if(i % 2 == 0) {
-                printedFamilies += "<span class='page-break grid grid-2'>";
+        let fragment = document.createDocumentFragment();
+        let printedFamilies = document.createElement("span");
+        printedFamilies.id = "print";
+        printedFamilies.classList.add("family-member-cards", "grid");
+
+        for (let i = 0; i < cards.length; i += 2) {
+            let pageSpan = document.createElement("span");
+            pageSpan.classList.add("page-break", "grid", "grid-2");
+
+            if (i + 1 < cards.length) {
+                pageSpan.appendChild(cards[i].cloneNode(true));
+                pageSpan.appendChild(cards[i + 1].cloneNode(true));
+            } else {
+                pageSpan.appendChild(cards[i].cloneNode(true));
             }
 
-            printedFamilies += card.outerHTML;
+            fragment.appendChild(pageSpan);
+        }
 
-            if(i % 2 != 0 || i == cards.length - 1) {
-                printedFamilies += "</span>";
-            }
-
-            i++;
-        });
-
-        printedFamilies += "</span>";
-        document.getElementById("family-member-cards").insertAdjacentHTML("afterend", printedFamilies);
+        printedFamilies.appendChild(fragment);
+        
+        let referenceNode = document.getElementById("family-member-cards");
+        referenceNode.parentNode.insertBefore(printedFamilies, referenceNode.nextSibling);
     }
 
     function undoFormatPrint() {
         document.getElementById("family-member-cards").classList.remove("hide");
-        document.getElementById("print").remove();
+
+        if(document.getElementById("print")) {
+            document.getElementById("print").remove();
+            printLabels();
+        }
     }
 
     function setPrinted() {
