@@ -1,3 +1,5 @@
+let giftPreferences;
+
 // add member to form
 // parameters: limit = total members able to be registered using this form
 // requires: span with id = "members-section"
@@ -87,9 +89,28 @@ function removeMember(memberID) {
             form.querySelector(".gift").setAttribute("name", arrayName + "[gift]");
             form.querySelector("button").setAttribute("onclick", "removeMember(" + i + ")");
 
-            var new_form = form.cloneNode(true);
+            // Before cloning and replacing the form, set the cloned age input value
+            let new_form = form.cloneNode(true);
+
+            // Preserve the selected age input value
+            new_form.querySelector(".age").value = form.querySelector(".age").value;
+
+            // Preserve the selected gift select value
+            let originalGiftSelect = form.querySelector(".gift");
+            let clonedGiftSelect = new_form.querySelector(".gift");
+            clonedGiftSelect.value = originalGiftSelect.value;
+
+            // Ensure the selected option is visually displayed
+            for (let option of clonedGiftSelect.options) {
+                if (option.value === clonedGiftSelect.value) {
+                    option.selected = true;
+                } else {
+                    option.selected = false;
+                }
+            }
+
             form.parentNode.replaceChild(new_form, form);
-            
+
             addMemberValidation(i);
             addGiftListener(i);
         }
@@ -107,9 +128,28 @@ function removeMember(memberID) {
             form.querySelector(".gift").setAttribute("name", arrayName + "[gift]");
             form.querySelector("button").setAttribute("onclick", "removeMember(" + i + ")");
 
-            var new_form = form.cloneNode(true);
+            // Before cloning and replacing the form, set the cloned age input value
+            let new_form = form.cloneNode(true);
+
+            // Preserve the selected age input value
+            new_form.querySelector(".age").value = form.querySelector(".age").value;
+
+            // Preserve the selected gift select value
+            let originalGiftSelect = form.querySelector(".gift");
+            let clonedGiftSelect = new_form.querySelector(".gift");
+            clonedGiftSelect.value = originalGiftSelect.value;
+
+            // Ensure the selected option is visually displayed
+            for (let option of clonedGiftSelect.options) {
+                if (option.value === clonedGiftSelect.value) {
+                    option.selected = true;
+                } else {
+                    option.selected = false;
+                }
+            }
+
             form.parentNode.replaceChild(new_form, form);
-            
+
             addMemberValidation(i);
             addGiftListener(i);
         }
@@ -117,8 +157,6 @@ function removeMember(memberID) {
     }
     changeLanguage();
 }
-
-var giftPreferences;
 (function fetchGifts() {
     let url = 'https://registration.communitychristmasfoxcities.org/fetch-gifts.php/';
 
@@ -142,7 +180,7 @@ function addGiftListener(memberID) {
     const member = ('#member' + memberID + " .age");
     const gift = ('#member' + memberID + " .gift");
 
-    document.querySelector(member).addEventListener("keyup", (event) => { 
+    document.querySelector(member).addEventListener("input", (event) => { 
         const giftSelect = document.querySelector(gift);
         // Set selected option as variable
         var age = parseInt(event.target.value);
@@ -327,7 +365,7 @@ function addFamilyValidation(famInfo) {
     let progressID = "status-family-information";
     checkValidation(famInfo, progressID);
 
-    famInfo.famCode.addEventListener("keyup", (event) => { 
+    famInfo.famCode.addEventListener("input", (event) => { 
         const famCodeCheck = document.querySelector("#span-fam-code svg");
         const famCodeError = document.querySelector("#error-fam-code");
         const url = "https://registration.communitychristmasfoxcities.org/fetch-code-validation.php";
@@ -505,7 +543,7 @@ function setFamilyGifts() {
         let newOption = `
             <span class="checkboxes">
                 <label for="` + giftId + `">
-                    <input class="alt-check" type="radio" name="fam-gift" id="` + giftId + `" value="` + giftName + ` required">
+                    <input class="alt-check" type="radio" name="fam-gift" id="` + giftId + `" value="` + giftName + `" required>
                     <span class="checkbox">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </span>

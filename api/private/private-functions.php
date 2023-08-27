@@ -176,4 +176,57 @@ function getGifts() {
     $conn->close();
 }
 
+function resetEvent() {
+    $conn = dbConnect('read');
+
+    $tables = ['deleted_families', 'registered_members', 'registered_families', 'family_id_list', 'feedback', 'language_changes'];
+    $backupYear = date('Y');
+
+    // Disable foreign key checks
+    mysqli_query($conn, "SET FOREIGN_KEY_CHECKS = 0");
+
+    foreach ($tables as $table) {
+        // Create backup table name
+        $backupTableName = $backupYear . '_' . $table;
+
+        // Check if the backup table name already exists
+        $counter = 2;
+        while (tableExists($backupTableName, $conn)) {
+            $backupTableName = $backupYear . '_' . $counter . '_' . $table;
+            $counter++;
+        }
+
+        // Backup table
+        $backupQuery = "CREATE TABLE $backupTableName AS SELECT * FROM $table";
+        $backupResult = mysqli_query($conn, $backupQuery);
+
+        if (!$backupResult) {
+            return "Backup of table $table failed. " . mysqli_error($conn);;
+            exit;
+        }
+
+        // Clear original table
+        $clearQuery = "TRUNCATE TABLE $table";
+        $clearResult = mysqli_query($conn, $clearQuery);
+
+        if (!$clearResult) {
+            return "Clearing of table $table failed. " . mysqli_error($conn);;
+            exit;
+        }
+    }
+
+    // Enable foreign key checks
+    mysqli_query($conn, "SET FOREIGN_KEY_CHECKS = 1");
+
+    $conn->close();
+
+    return "success";
+}
+
+function tableExists($tableName, $conn) {
+    $checkQuery = "SHOW TABLES LIKE '$tableName'";
+    $result = mysqli_query($conn, $checkQuery);
+    return $result && $result->num_rows > 0;
+}
+
 ?>

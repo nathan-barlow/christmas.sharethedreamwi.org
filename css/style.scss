@@ -300,6 +300,21 @@ footer a {
    color: white;
 }
 
+dialog {
+   border: none;
+   border-radius: var(--br-small);
+   box-shadow: var(--box-shadow);
+   padding: 1rem;
+   min-width: 400px;
+   max-width: 600px;
+
+   h2 {
+      margin-bottom: 1rem;
+      margin-top: .2rem;
+      font-size: 1.2rem;
+   }
+}
+
 .hide {
    display: none !important;
 }
@@ -948,7 +963,8 @@ body.page-id-155 {
 }
 
 form:not(.sib_signup_form),
-.language-selector {
+.language-selector,
+dialog {
    strong,
    input {
       display: block;
@@ -1272,7 +1288,13 @@ form:not(.sib_signup_form),
       }
    }
 
+   .registerFormAdmin-members {
+      overflow-x: scroll;
+   }
+
    .members-grid {
+      min-width: 550px;
+
       label {
          width: 100%;
          margin: 0px;
@@ -1295,6 +1317,12 @@ form:not(.sib_signup_form),
       gap: .5rem;
       grid-template-columns: 1rem 2fr 1fr 3fr 40px;
       align-items: center;
+   }
+}
+
+#family-registered-confirmation {
+   .button, button {
+      margin: 0px;
    }
 }
 
@@ -1691,11 +1719,10 @@ nav.nav-secondary {
    table.family-members {
       td {
          word-break: break-all;
-         
       }
 
       td:nth-of-type(1) {
-         min-width: 25vw;
+         min-width: 20vw;
       }
 
       td:nth-of-type(2) {
@@ -1719,16 +1746,6 @@ nav.nav-secondary {
    }
 
    #delete-confirmation {
-      border: none;
-      border-radius: var(--br-small);
-      box-shadow: var(--box-shadow);
-      padding: 1rem;
-
-      h2 {
-         margin-bottom: 1rem;
-         font-size: 1.1rem;
-      }
-
       #lastname {
          color: var(--color-main-800);
       }
@@ -1966,6 +1983,12 @@ form.add-edit-family {
       }
    }
 
+   .registrations-dashboard table.family-members {
+      td:nth-of-type(1) {
+         min-width: 10vw;
+      }
+   }
+
    .registrations-dashboard #searchFamilies {
       width: 460px;
    }
@@ -1982,7 +2005,7 @@ form.add-edit-family {
    }
 
    .registerForm-sidebar {
-      padding: var(--gap) var(--gap-sm);
+      padding: var(--gap-sm);
       border-radius: var(--br-large) 0px 0px var(--br-large);
       order: 0;
 

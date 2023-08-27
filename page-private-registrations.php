@@ -307,14 +307,13 @@ get_header('archive');
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+<script type="text/javascript" src="/wp-content/themes/communitychristmasfoxcities.org/js/private.js"></script>
 
 <script>
     var allFamilies
     var currentFilter;
     var row = "";
     const progressBars = document.querySelectorAll(".progress-bar");
-    const user = "registrationapi";
-    const pass = "ARpw930jkN9Lldkdn23JK";
     
     for(let i = 0; i < progressBars.length; i++) {
         const bar = progressBars[i];
@@ -379,9 +378,9 @@ get_header('archive');
             }
 
             if (match) {
-                families[i].style.display = "";
+                families[i].classList.remove("hide");
             } else {
-                families[i].style.display = "none";
+                families[i].classList.add("hide");
             }
             
         }

@@ -86,11 +86,29 @@ get_header('archive');
             <p>
                 Restart event and add new one. This will delete all current registrants and start from scratch. Should only be done once per year.
             </p>
-            <button class="button-primary">
+            <button id="button-confirm-restart" class="button button-primary">
                 Restart Event
             </button>
         </div>
     </div>
+
+    <dialog id="restart-confirmation">
+        <h2>Reset Event</h2>
+        <p>
+            Are you sure you want to restart the event? This will delete all current registrants and store this year's event data in a backup database. The active database will be cleared. This cannot be easily undone.
+        </p>
+        <label for="reset-text">Type "<?php echo date('Y') ?>" to confirm</label>
+        <input type="text" id="reset-text" name="reset-text" pattern="<?php echo date('Y') ?>" required placeholder="<?php echo date('Y') ?>">
+
+        <div class="buttons">
+            <button onclick="closeReset()" class="button button-gray-150">
+                Cancel
+            </button>
+            <button class="button button-primary" id="button-restart">
+                Restart Event
+            </button>
+        </div>
+    </dialog>
 
     <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
     
@@ -101,6 +119,61 @@ get_header('archive');
         <?php endwhile; else: endif; ?>
     </div>
 </main>
+
+<script>
+    const user = "registrationapi";
+    const pass = "ARpw930jkN9Lldkdn23JK";
+
+    const button_confirm = document.getElementById("button-confirm-restart");
+    const dialog_box = document.getElementById("restart-confirmation");
+    const button_restart = document.getElementById("button-restart");
+    const reset_text = document.getElementById("reset-text");
+
+    button_confirm.addEventListener("click", confirmReset);
+    button_restart.addEventListener("click", resetEvent);
+
+    function confirmReset() {
+        dialog_box.showModal();
+    }
+
+    function closeReset() {
+        dialog_box.close();
+    }
+
+    function resetEvent() {
+        let existingMessage = document.querySelector(".message");
+        if(existingMessage) {
+            existingMessage.remove();
+        }
+            
+        if(reset_text.checkValidity()) {
+            let url = 'https://registration.communitychristmasfoxcities.org/private/reset-event.php/';
+
+            let headers = new Headers();
+            headers.set('Authorization', 'Basic ' + btoa(user + ":" + pass));
+
+            let response = fetch(url, {headers: headers})
+                .then(function (response) {
+                    return response.text();
+                })
+                .then(function (body) {
+                    if(body == "Authorization required") {
+                        reset_text.insertAdjacentHTML("afterend", "<div class='message message-error'>Authorization failed.</div>");
+                    } else if(body == "success") {
+                        dialog_box.close();
+                        document.querySelector(".danger").insertAdjacentHTML("afterend", "<div class='message message-success'>Success! Event has been reset.</div>");
+                        reset_text.value = "";
+                    } else {
+                        let message = "<div class='message message-error'>Error: " + body + "</div>";
+                        reset_text.insertAdjacentHTML("afterend", message);
+                    }
+                });
+        } else {
+            let message = "<div class='message message-error'>Make sure to type in the correct value.</div>";
+            reset_text.insertAdjacentHTML("afterend", message);
+        }
+    }
+</script>
 
 
 <?php

@@ -49,7 +49,6 @@ get_header( 'home' );
 
 <script>
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
     const snowflakes = document.getElementsByClassName("snowflake");
 
     const style1 = window.getComputedStyle(document.getElementById("flake1"));
@@ -74,9 +73,6 @@ get_header( 'home' );
                     fill: "forwards",
                     easing: "ease-out"
                 })
-
-                // flake.style.transform = "rotate(" + window.pageYOffset / spin + "deg)";
-                // flake.style.top = (window.pageYOffset + parseInt(flake.dataset.top)) + "px";
             };
         });
     }

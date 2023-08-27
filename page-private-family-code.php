@@ -209,4 +209,6 @@ if (isset($_POST['organizations'])) {
 
 <?php
 get_footer();
+
+$conn->close();
 ?>

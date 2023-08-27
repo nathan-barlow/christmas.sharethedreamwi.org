@@ -10,29 +10,30 @@ get_header('archive');
     <div class="wrapper">
         <div class="registerForm-container grid grid-3">
             <aside class="registerForm-sidebar">
-            <div class="registerForm-sidebar-container">
-                <div id="registerForm-sidebar-links">
-                    <a class="registerForm-sidebar-item" id="status-family-information" href="#family-information">
-                        <i class="bi bi-check-circle"></i>
-                        <p>
-                            <strong data-en="Family Information" data-sp="Información de Família" data-hm="Cov Ntaub Ntawv Tsev Neeg">Family Information</strong> <br>
-                            <span class="registerForm-sidebar-item-status" data-en="Incomplete" data-sp="Incompleto" data-hm="Tsom Cov Tsev Neeg">Incomplete</span>
-                        </p>
-                    </a>
-                    <a class="registerForm-sidebar-item" id="status-member1" href="#member1">
-                        <i class="bi bi-check-circle"></i>
-                        <p>
-                            <strong data-en="About You" data-sp="Sobre Ud." data-hm="Peb Koj">About You</strong> <br>
-                            <span class="registerForm-sidebar-item-status" data-en="Incomplete" data-sp="Incompleto" data-hm="Tsom">Incomplete</span>
-                        </p>
-                    </a>
+                <div class="registerForm-sidebar-container">
+                    <h2>Form Sections</h2>
+                    <div id="registerForm-sidebar-links">
+                        <a class="registerForm-sidebar-item" id="status-family-information" href="#family-information">
+                            <i class="bi bi-check-circle"></i>
+                            <p>
+                                <strong data-en="Family Information" data-sp="Información de Família" data-hm="Cov Ntaub Ntawv Tsev Neeg">Family Information</strong> <br>
+                                <span class="registerForm-sidebar-item-status" data-en="Incomplete" data-sp="Incompleto" data-hm="Tsom Cov Tsev Neeg">Incomplete</span>
+                            </p>
+                        </a>
+                        <a class="registerForm-sidebar-item" id="status-member1" href="#member1">
+                            <i class="bi bi-check-circle"></i>
+                            <p>
+                                <strong data-en="About You" data-sp="Sobre Ud." data-hm="Peb Koj">About You</strong> <br>
+                                <span class="registerForm-sidebar-item-status" data-en="Incomplete" data-sp="Incompleto" data-hm="Tsom">Incomplete</span>
+                            </p>
+                        </a>
+                    </div>
+                    <button onclick="addMember(8);" class="button-main-100 button-gray-150">
+                        <i class="bi bi-person-add"></i>
+                        <span data-en="Add Family Member" data-sp="Agregar Miembro de la Familia" data-hm="Nce Koj Tsev Neeg">Add Family Member</span>
+                    </button>
                 </div>
-                <button onclick="addMember(8);" class="button-main-100 button-gray-150">
-                    <i class="bi bi-person-add"></i>
-                    <span data-en="Add Family Member" data-sp="Agregar Miembro de la Familia" data-hm="Nce Koj Tsev Neeg">Add Family Member</span>
-                </button>
-            </div>
-        </aside>
+            </aside>
 
             <section class="registerForm-main span-2">
 

@@ -80,7 +80,7 @@ get_header('archive');
                     </span>
                 </div>
 
-                <div class="card">
+                <div class="card registerFormAdmin-members">
                     <h2>Family Members</h2>
 
                     <div class="members-grid">
@@ -94,30 +94,31 @@ get_header('archive');
                         <strong class="family-member-number">1</strong>
                         
                         <label>
-                            <input class="input-lg first-name" name="members[1][name]" type="text" required autocomplete="off" minlength="2" maxlength="100" aria-labelledby="label-name">
+                            <input class="first-name" name="members[1][name]" type="text" required autocomplete="off" minlength="2" maxlength="100" aria-labelledby="label-name">
                         </label>
 
                         <label>
-                            <input class="input-sm age" name="members[1][age]" type="number" min="0" max="120" required autocomplete="off" aria-labelledby="label-age">
+                            <input class="age" name="members[1][age]" type="number" min="0" max="120" required autocomplete="off" aria-labelledby="label-age">
                         </label>
 
                         <label>
-                            <select class="input-lg gift" required readonly name="members[1][gift]" aria-labelledby="label-gift">
+                            <select class="gift" required readonly name="members[1][gift]" aria-labelledby="label-gift">
                                 <option value="" disabled selected>Please specify age first</option>
                             </select>
                         </label>
                     </div>
 
                     <span id="members-section"></span>
+
+                    <button type="button" onclick="addMember(30);" class="button button-gray-150">
+                        <i class="bi bi-person-add"></i>
+                        <span>Add Family Member</span>
+                    </button>
                 </div>
 
                 <span id="server-errors"></span>
 
                 <div class="buttons">
-                    <button type="button" onclick="addMember(30);" class="button-gray-150">
-                        <i class="bi bi-person-add"></i>
-                        <span>Add Family Member</span>
-                    </button>
                     <button class="button-primary">
                         <span id="submit">Submit</span>
                     </button>
@@ -127,11 +128,19 @@ get_header('archive');
     </div>
 </main>
 
+<dialog id="family-registered-confirmation">
+    <h2>Family Registered</h2>
+    <div id="registered-message" class="message message-success"></div>
+    <div class="buttons">
+        <a class="button button-gray-150" href="/private-register-family">Register Another Family</a>
+        <a class="button button-primary" href="/private-registrations">Go Home</a>
+    </div>
+</dialog>
+
 <script type="text/javascript" src="/wp-content/themes/communitychristmasfoxcities.org/js/registration.js"></script>
+<script type="text/javascript" src="/wp-content/themes/communitychristmasfoxcities.org/js/private.js"></script>
 
 <script>
-    const user = "registrationapi";
-    const pass = "ARpw930jkN9Lldkdn23JK";
     var familyMembers = 1;
     const form = document.getElementById('register-form');
     form.addEventListener("submit", fetchSubmitFormAdmin);
@@ -149,15 +158,15 @@ get_header('archive');
                         <strong class="family-member-number">` + i + `</strong>
 
                         <label>
-                            <input class="input-lg first-name" name="members[` + i + `][name]" type="text" required autocomplete="off" minlength="2" maxlength="100" aria-labelledby="label-name">
+                            <input class="first-name" name="members[` + i + `][name]" type="text" required autocomplete="off" minlength="2" maxlength="100" aria-labelledby="label-name">
                         </label>
 
                         <label>
-                            <input class="input-sm age" name="members[` + i + `][age]" type="number" min="0" max="120" required autocomplete="off" aria-labelledby="label-age">
+                            <input class="age" name="members[` + i + `][age]" type="number" min="0" max="120" required autocomplete="off" aria-labelledby="label-age">
                         </label>
 
                         <label>
-                            <select class="input-lg gift" required readonly name="members[` + i + `][gift]" aria-labelledby="label-gift">
+                            <select class="gift" required readonly name="members[` + i + `][gift]" aria-labelledby="label-gift">
                                 <option value="" disabled selected>Please specify age first</option>
                             </select>
                         </label>
@@ -175,15 +184,30 @@ get_header('archive');
         let params = new URL(document.location).searchParams;
         editFamilyNumber = params.get("edit-family");
 
-        if(editFamilyNumber) {
+        if (editFamilyNumber) {
             edit = true;
-            getFamily(editFamilyNumber);
+
+            const timeoutDuration = 2000; // 5 seconds in milliseconds
+            let timeoutId;
+
+            // Define an interval to check for giftPreferences availability
+            const interval = setInterval(() => {
+                if (typeof giftPreferences !== "undefined") {
+                    clearInterval(interval); // Clear the interval once giftPreferences is available
+                    clearTimeout(timeoutId); // Clear the timeout
+                    getFamily(editFamilyNumber);
+                }
+            }, 100); // Check every 100 milliseconds
+
+            // Set a timeout to run an alternative function if conditions are not met within the specified time
+            timeoutId = setTimeout(() => {
+                clearInterval(interval); // Clear the interval
+                // Run your alternative function here
+                let message = "<div class='message message-error'>Failed to load gift options. Please refresh and try again.</div>";
+                document.querySelector("h1").insertAdjacentHTML("beforebegin", message);
+            }, timeoutDuration);
         }
     });
-
-    /*window.onbeforeunload = function() {
-        return "If you exit this page you may lose your data!";
-    }*/
 
     function getFamily(id) {
         let formData = new FormData();
@@ -200,6 +224,7 @@ get_header('archive');
             .then(function (body) {
             if(body != "[]") {
                 let retrievedFamily = JSON.parse(body);
+                console.log(retrievedFamily);
                 populateFamily(retrievedFamily);
             } else {
                 let message = "<div class='message message-error'><p>Unable to retrieve data for family number " + id + ". If you are certain that family number " + id + " exists, please contact site administrator.</p><p><a class='inline-link' href='/private-registrations'>Go back to registered families?</a></p></div>";
@@ -245,7 +270,7 @@ get_header('archive');
 
             document.querySelector('#member' + m + ' .first-name').value = memInfo.name;
             document.querySelector('#member' + m + ' .age').value = memInfo.age;
-            document.querySelector('#member' + m + ' .age').dispatchEvent(new KeyboardEvent('keyup'));
+            document.querySelector('#member' + m + ' .age').dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
 
             // if gift option doesn't exist, add it as an option
             let giftSelect = document.querySelector("#member" + m + " .gift");
@@ -300,17 +325,21 @@ get_header('archive');
             })
             .then(function (body) {
                 if(body == "true") {
-                    message = "<div class='message message-success'>Family successfully registered.</div>"
-                    document.querySelector('main').insertAdjacentHTML("beforeend", message);
+                    message = "Family successfully registered."
+                    document.getElementById("family-registered-confirmation").showModal();
+                    document.querySelector('#registered-message').innerHTML = message;
                 } else if(body == "opt-out") {
-                    message = "<div class='message message-success'>Family successfully registered. Remind them to add event date to calendar because they did not subscribe to receive emails.</div>"
-                    document.querySelector('main').insertAdjacentHTML("beforeend", message);
+                    message = "Family successfully registered. Remind them to add event date to calendar because they did not subscribe to receive emails."
+                    document.getElementById("family-registered-confirmation").showModal();
+                    document.querySelector('#registered-message').innerHTML = message;
                 } else if(body == "email-error") {
-                    message = "<div class='message message-success'>Family successfully registered. However, there was an error adding the email to Brevo. Please add their data manually if they would like to receive emails.</div>"
-                    document.querySelector('main').insertAdjacentHTML("beforeend", message);
+                    message = "Family successfully registered. However, there was an error adding the email to Brevo. Please add their data manually if they would like to receive emails."
+                    document.getElementById("family-registered-confirmation").showModal();
+                    document.querySelector('#registered-message').innerHTML = message;
                 } else if(body == "edit-true") {
-                    message = "<div class='message message-success'>Edit success!</div>"
-                    document.querySelector('main').insertAdjacentHTML("beforeend", message);
+                    message = "Edit success!"
+                    document.getElementById("family-registered-confirmation").showModal();
+                    document.querySelector('#registered-message').innerHTML = message;
                 } else {
                     console.log(body);
                     errors = JSON.parse(body);
