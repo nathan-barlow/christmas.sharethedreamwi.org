@@ -1,5 +1,6 @@
-# Ignore .env files
+# Ignore .env and .config files
 *.env
+*.config
 
 # Ignore private configuration files
 js/private.js
