@@ -1,4 +1,5 @@
 let giftPreferences;
+let availableTimes;
 
 // add member to form
 // parameters: limit = total members able to be registered using this form
@@ -49,7 +50,7 @@ function removeMember(memberID) {
     }
     var removeMem = false;
 
-    if (memInfo.memName.value != "" || memInfo.memAge.value != "" || memInfo.memGift.value != "") {
+    if (memInfo.memName.value != "" || memInfo.memAge.value != "" || (memInfo.memGift && memInfo.memGift.value != "")) {
         if (confirm(confirmMessage) == true) {
             removeMem = true;
         }
@@ -83,11 +84,14 @@ function removeMember(memberID) {
 
             let arrayName = "members[" + i + "]";
             form.setAttribute("id", "member" + i);
+            form.querySelector(".remove-member").setAttribute("onclick", "removeMember(" + i + ")");
+            form.querySelector(".age-gift").setAttribute("id", "age-gift-" + i);
+            form.querySelector(".adult-CHILD").setAttribute("name", "adult-child-" + i);
+            form.querySelector(".ADULT-child").setAttribute("name", "adult-child-" + i);
             form.querySelector("h2").innerText = "Family Member " + i;
             form.querySelector(".first-name").setAttribute("name", arrayName + "[name]");
             form.querySelector(".age").setAttribute("name", arrayName + "[age]");
-            form.querySelector(".gift").setAttribute("name", arrayName + "[gift]");
-            form.querySelector("button").setAttribute("onclick", "removeMember(" + i + ")");
+            form.querySelector(".gift")?.setAttribute("name", arrayName + "[gift]");
 
             // Before cloning and replacing the form, set the cloned age input value
             let new_form = form.cloneNode(true);
@@ -95,24 +99,22 @@ function removeMember(memberID) {
             // Preserve the selected age input value
             new_form.querySelector(".age").value = form.querySelector(".age").value;
 
-            // Preserve the selected gift select value
-            let originalGiftSelect = form.querySelector(".gift");
-            let clonedGiftSelect = new_form.querySelector(".gift");
-            clonedGiftSelect.value = originalGiftSelect.value;
-
-            // Ensure the selected option is visually displayed
-            for (let option of clonedGiftSelect.options) {
-                if (option.value === clonedGiftSelect.value) {
-                    option.selected = true;
-                } else {
-                    option.selected = false;
-                }
+            // Preserve the selected gift input value
+            if(form.querySelector(".gift")) {
+                new_form.querySelector(".gift").value = form.querySelector(".gift").value;
             }
 
             form.parentNode.replaceChild(new_form, form);
 
             addMemberValidation(i);
             addGiftListener(i);
+
+            let adultRadio = document.querySelector("#member" + i + " .ADULT-child");
+
+            var event = new Event('change');
+            if(adultRadio.checked) {
+                adultRadio.dispatchEvent(event);
+            }
         }
 
         let adminMembers = document.querySelectorAll("#members-section .members-grid");
@@ -125,28 +127,11 @@ function removeMember(memberID) {
             form.querySelector(".family-member-number").innerText = i;
             form.querySelector(".first-name").setAttribute("name", arrayName + "[name]");
             form.querySelector(".age").setAttribute("name", arrayName + "[age]");
-            form.querySelector(".gift").setAttribute("name", arrayName + "[gift]");
-            form.querySelector("button").setAttribute("onclick", "removeMember(" + i + ")");
+            form.querySelector(".gift")?.setAttribute("name", arrayName + "[gift]");
+            form.querySelector(".remove-member").setAttribute("onclick", "removeMember(" + i + ")");
 
             // Before cloning and replacing the form, set the cloned age input value
             let new_form = form.cloneNode(true);
-
-            // Preserve the selected age input value
-            new_form.querySelector(".age").value = form.querySelector(".age").value;
-
-            // Preserve the selected gift select value
-            let originalGiftSelect = form.querySelector(".gift");
-            let clonedGiftSelect = new_form.querySelector(".gift");
-            clonedGiftSelect.value = originalGiftSelect.value;
-
-            // Ensure the selected option is visually displayed
-            for (let option of clonedGiftSelect.options) {
-                if (option.value === clonedGiftSelect.value) {
-                    option.selected = true;
-                } else {
-                    option.selected = false;
-                }
-            }
 
             form.parentNode.replaceChild(new_form, form);
 
@@ -158,7 +143,7 @@ function removeMember(memberID) {
     changeLanguage();
 }
 (function fetchGifts() {
-    let url = 'https://registration.communitychristmasfoxcities.org/fetch-gifts.php/';
+    let url = 'https://registration.christmas.sharethedreamwi.org/fetch-gifts.php/';
 
     let response = fetch(url)
         .then(function (response) {
@@ -171,12 +156,25 @@ function removeMember(memberID) {
         });
 })();
 
+(function fetchTimes() {
+    let url = 'https://registration.christmas.sharethedreamwi.org/fetch-timeframes.php/';
+
+    let response = fetch(url)
+        .then(function (response) {
+            return response.text();
+        })
+        .then(function (body) {
+            availableTimes = JSON.parse(body);
+            setAvailableTimes();
+        });
+})();
+
 // Add gift listener to populate gift select options
 // requires: memberID (id NUMBER ONLY of member container)
 //           querySelector #memberNUMBER
 //                         .age
 //                         .gift
-function addGiftListener(memberID) {
+function DEPRECATED_addGiftListener(memberID) {
     const member = ('#member' + memberID + " .age");
     const gift = ('#member' + memberID + " .gift");
 
@@ -225,6 +223,94 @@ function addGiftListener(memberID) {
     });
 }
 
+function addGiftListener(memberID) {
+    const member = ('#member' + memberID + " .age");
+    const gift = ('#member' + memberID + "_gifts");
+    const ageGiftContainer = document.querySelector('#age-gift-' + memberID);
+    const radioButtons = document.querySelectorAll('input[name="adult-child-' + memberID + '"]');
+    const giftSelect = document.querySelector(gift);
+
+    if(giftSelect) {
+        document.querySelector(member).addEventListener("input", (event) => { 
+            // Set selected option as variable
+            var age = parseInt(event.target.value);
+            var selectValue;
+    
+            if(0 <= age && age <= 3) {
+                selectValue = "Age 0-3";
+            } else if(4 <= age && age <= 7) {
+                selectValue = "Age 4-7";
+            } else if(8 <= age && age <= 11) {
+                selectValue = "Age 8-11";
+            } else if(12 <= age && age <= 17) {
+                selectValue = "Age 12-17";
+            } else if(18 <= age && age <= 120) {
+                selectValue = "Age 18+";
+            } else {
+                selectValue = "";
+                giftSelect.innerHTML = "<option>No Preference</option>";
+            }
+            
+            // For each choice in the selected option
+            if(selectValue) {
+                // Empty the target field
+                let child = giftSelect.lastElementChild;
+                while (child) {
+                    giftSelect.removeChild(child);
+                    child = giftSelect.lastElementChild;
+                }
+    
+                giftSelect.innerHTML += "<option disabled value=''>" + selectValue + " gift choices</option>";
+    
+                for (i = 0; i < giftPreferences[selectValue].length; i++) {
+                    // Output choice in the target field
+                    giftSelect.innerHTML += ("<option>" + giftPreferences[selectValue][i] + "</option>");
+                }
+    
+                giftSelect.innerHTML += ("<option>No Preference</option>");
+    
+                giftSelect.removeAttribute('readonly');
+            }
+        });
+    }    
+
+    radioButtons.forEach(function(radio) {
+        radio.addEventListener("change", function() {
+            // This code will run when any radio button in the group is changed
+            if (radio.checked) {
+                if(radio.value == "child") {
+                    ageGiftContainer.style.display = "block";
+                    ageGiftContainer.querySelector(".age").required = true;
+                    ageGiftContainer.querySelector(".age").dataset.validate = 'null';
+                    if(giftSelect) {
+                        ageGiftContainer.querySelector(".gift").required = true;
+                        ageGiftContainer.querySelector(".gift").dataset.validate = 'null';
+                    }
+                } else {
+                    ageGiftContainer.style.display = "none";
+                    ageGiftContainer.querySelector(".age").required = false;
+                    ageGiftContainer.querySelector(".age").value = "";
+                    ageGiftContainer.querySelector(".age").dataset.validate = 'valid';
+                    if(giftSelect) {
+                        ageGiftContainer.querySelector(".gift").required = false;
+                        ageGiftContainer.querySelector(".gift").value = "";
+                        ageGiftContainer.querySelector(".gift").dataset.validate = 'valid';
+                    }
+                }
+
+                let progressID = "status-member" + memberID;
+                let memInfo = {
+                    memName : document.querySelector('#member' + memberID + ' .first-name'),
+                    memAge : document.querySelector('#member' + memberID + ' .age'),
+                    memGift : document.querySelector('#member' + memberID + ' .gift')
+                }
+
+                checkValidation(memInfo, progressID);
+            }
+        });
+    });
+}
+
 // Validate member form section. Called by addMember and removeMember.
 // requires: memberID (id NUMBER ONLY of member container)
 //           querySelector #memberNUMBER
@@ -239,7 +325,9 @@ function addMemberValidation(memberID) {
     }
 
     for(let item in memInfo) {
-        memInfo[item].dataset.validate = "";
+        if(memInfo[item]) {
+            memInfo[item].dataset.validate = "";
+        }
     }
 
     let progressID = "status-member" + memberID;
@@ -260,8 +348,10 @@ function addMemberValidation(memberID) {
     } else if(memInfo.memAge.value != "") {
         memInfo.memAge.dataset.validate = "invalid";
     }
-    if(memInfo.memGift.value != "") {
-        memInfo.memGift.dataset.validate = "valid";
+    if(memInfo.memGift) {
+        if(memInfo.memGift.value != "") {
+            memInfo.memGift.dataset.validate = "valid";
+        }
     }
 
     
@@ -288,25 +378,43 @@ function addMemberValidation(memberID) {
             memInfo.memAge.dataset.validate = "invalid";
         }
 
-        if(memInfo.memGift.value == "") {
-            memInfo.memGift.dataset.validate = "invalid";
-        } else {
-            memInfo.memGift.dataset.validate = "valid";
+        if(memInfo.memGift) {
+            if(memInfo.memGift.value == "") {
+                memInfo.memGift.dataset.validate = "";
+            }
         }
 
         checkValidation(memInfo, progressID);
     });
 
-    memInfo.memGift.addEventListener("change", (event) => {
-        if(memInfo.memGift.value == "") {
-            memInfo.memGift.dataset.validate = "invalid";
-        } else {
-            memInfo.memGift.dataset.validate = "valid";
-        }
-
-        checkValidation(memInfo, progressID);
-    });
-
+    if(memInfo.memGift) {
+        memInfo.memGift.addEventListener("change", (event) => {
+            listOptions = document.querySelector("#member" + memberID + "_gifts");
+    
+            let optionFound = false;
+            for (const option of listOptions.options) {
+                if (option.value.toLowerCase() === memInfo.memGift.value.toLowerCase()) {
+                    optionFound = true;
+                    break;
+                }
+            }
+    
+            let validGift = memInfo.memGift.checkValidity();
+            
+            if (!optionFound) {
+                memInfo.memGift.dataset.validate = "valid";
+                listOptions.style.opacity = "0";
+                alert("Kindly note that while we strive to fulfill your specific gift request, opting for a selection from the provided list ensures smoother processing and an increased likelihood of receiving your preferred gift. In the event that your chosen gift is unavailable, we may substitute it with an age-appropriate alternative. Your satisfaction is important to us, and we will make every effort to fulfill your request to the best of our abilities.");
+                listOptions.style.opacity = "1";
+            } else if (validGift) {
+                memInfo.memGift.dataset.validate = "valid";
+            } else {
+                memInfo.memGift.dataset.validate = "invalid";
+            }
+    
+            checkValidation(memInfo, progressID);
+        });
+    }
 }
 
 // Submit form using fetch API
@@ -315,6 +423,7 @@ function fetchSubmitForm(event) {
     event.preventDefault();
     
     let errors = document.querySelectorAll("[data-validate='invalid'");
+    let event_timeframe = document.getElementById("fam-reservation").value;
 
     if(errors.length > 0) {
         let s = "";
@@ -324,7 +433,7 @@ function fetchSubmitForm(event) {
         document.getElementById("server-errors").innerHTML = "";
         document.getElementById("server-errors").innerHTML += "<div class='message message-error'>Please correct " + errors.length + " error" + s + ". The invalid inputs are highlighted in red.</div>";
     } else {
-        let url = 'https://registration.communitychristmasfoxcities.org/fetch-form-validation.php';
+        let url = 'https://registration.christmas.sharethedreamwi.org/fetch-form-validation.php';
 
         let response = fetch(url, {method:'post', body: new FormData(form)})
         .then(function (response) {
@@ -332,17 +441,24 @@ function fetchSubmitForm(event) {
         })
         .then(function (body) {
             if(body == "true") {
+                if(event_timeframe) {
+                    localStorage.setItem('std2023_event_time', event_timeframe);
+                }
                 newURL = "/register-success";
                 window.location.replace(newURL);
             } else if(body == "opt-out") {
+                if(event_timeframe) {
+                    localStorage.setItem('std2023_event_time', event_timeframe);
+                }
                 newURL = "/register-success?opt-out";
                 window.location.replace(newURL);
             } else if(body == "email-error") {
-                console.log(body);
+                if(event_timeframe) {
+                    localStorage.setItem('std2023_event_time', event_timeframe);
+                }
                 newURL = "/register-success?email-error";
                 window.location.replace(newURL);
             } else {
-                console.log(body);
                 errors = JSON.parse(body);
                 document.getElementById("server-errors").innerHTML = "";
                 document.getElementById("server-errors").innerHTML += "<div class='message message-error'><ul id='error-list'></ul></div>";
@@ -359,7 +475,9 @@ function fetchSubmitForm(event) {
 // requires: famInfo object with famCode, famMembers, famName, famEmail, famPhone [form input nodes]
 function addFamilyValidation(famInfo) {
     for(let item in famInfo) {
-        famInfo[item].dataset.validate = "";
+        if(famInfo[item]) {
+            famInfo[item].dataset.validate = "";
+        }
     }
 
     let progressID = "status-family-information";
@@ -368,7 +486,7 @@ function addFamilyValidation(famInfo) {
     famInfo.famCode.addEventListener("input", (event) => { 
         const famCodeCheck = document.querySelector("#span-fam-code svg");
         const famCodeError = document.querySelector("#error-fam-code");
-        const url = "https://registration.communitychristmasfoxcities.org/fetch-code-validation.php";
+        const url = "https://registration.christmas.sharethedreamwi.org/fetch-code-validation.php";
 
         if(famInfo.famCode.value.length == 6) {
             var formData = new FormData();
@@ -431,7 +549,6 @@ function addFamilyValidation(famInfo) {
         }
 
         checkValidation(famInfo, progressID);
-
     });
 
     famInfo.famName.addEventListener("change", (event) => {
@@ -477,6 +594,18 @@ function addFamilyValidation(famInfo) {
 
         checkValidation(famInfo, progressID);
     });
+
+    famInfo.famReservation.addEventListener("input", (event) => {
+        let valid = famInfo.famReservation.checkValidity();
+
+        if(valid) {
+            famInfo.famReservation.dataset.validate = "valid";
+        } else {
+            famInfo.famReservation.dataset.validate = "invalid";
+        }
+
+        checkValidation(famInfo, progressID);
+    });
 }
 
 // Check if all items in section are valid and update progress to reflect
@@ -488,12 +617,14 @@ function checkValidation(items, containerID) {
     let totalErrors = 0;
 
     for(let item in items) {
-        totalItems++;
+        if(items[item]) {
+            totalItems++;
 
-        if(items[item].dataset.validate == "valid") {
-            totalValid++;
-        } else if(items[item].dataset.validate == "invalid") {
-            totalErrors++;
+            if(items[item].dataset.validate == "valid") {
+                totalValid++;
+            } else if(items[item].dataset.validate == "invalid") {
+                totalErrors++;
+            }
         }
     }
 
@@ -520,8 +651,10 @@ function updateProgress(id, status) {
 
     if(icon) {
         if(status == "Complete") {
+            icon.classList.remove("form-error");
             icon.classList.add("form-success");
         } else if(status.includes("error")) {
+            icon.classList.remove("form-success");
             icon.classList.add("form-error");
         } else {
             icon.classList.remove("form-error");
@@ -536,6 +669,7 @@ function updateProgress(id, status) {
 
 function setFamilyGifts() {
     let container = document.getElementById('family-gift-options');
+    let all_options = document.getElementById('all-gift-options');
 
     for (i = 0; i < giftPreferences['Family'].length; i++) {
         let giftId = giftPreferences['Family'][i].toLowerCase();
@@ -553,6 +687,35 @@ function setFamilyGifts() {
         `;
 
         container.insertAdjacentHTML("afterbegin", newOption);
+    }
+
+    for(age in giftPreferences) {
+        let ageGroup = ""
+        if(giftPreferences[age].length > 0 && age != "Family") {
+            ageGroup += ("<h3>" + age + "</h3><ul>");
+
+            for(gift in giftPreferences[age]) {
+                ageGroup += ("<li>" + giftPreferences[age][gift] + "</li>");
+            }
+
+            ageGroup += "</ul>";
+            all_options.innerHTML += ageGroup;
+        }
+    }
+}
+
+function setAvailableTimes() {
+    let selectList = document.getElementById('fam-reservation');
+    let label = document.getElementById('label-fam-reservation');
+    if(availableTimes[0] == "") {
+        selectList.required = false;
+        selectList.remove();
+        label.remove();
+    } else {
+        for(time in availableTimes) {
+            let option = `<option value='${(availableTimes[time])}'>${(availableTimes[time])}</option>`;
+            selectList.innerHTML += option;
+        }
     }
 }
 
@@ -588,7 +751,7 @@ function changeLanguage() {
         let formData = new FormData();
         formData.append('language', language);
     
-        let url = 'https://registration.communitychristmasfoxcities.org/fetch-language.php';
+        let url = 'https://registration.christmas.sharethedreamwi.org/fetch-language.php';
     
         fetch(url, { method: 'POST', body: formData})
             .then(function (response) {

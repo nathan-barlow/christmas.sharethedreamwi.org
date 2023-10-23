@@ -4,27 +4,6 @@ get_template_part('template-parts/db-connection');
 // Connect to Database Using MySQL
 $conn = dbConnect('read');
 
-if ($_POST['confirm'] === "DELETE" && isset($_POST['family-id-delete'])) {
-    $family_id_delete = $_POST['family-id-delete'];
-
-    $create_backup = $conn->prepare("INSERT INTO deleted_families
-        SELECT * FROM registered_families
-        WHERE family_id = ?");
-    $delete_members = $conn->prepare("DELETE FROM registered_members WHERE family_id = ?");
-    $delete_family = $conn->prepare("DELETE FROM registered_families WHERE family_id = ?");
-
-    $create_backup->bind_param("s", $family_id_delete);
-    $delete_family->bind_param("s", $family_id_delete);
-    $delete_members->bind_param("s", $family_id_delete);
-
-    $create_backup->execute();
-    $create_backup->close();
-    $delete_members->execute();
-    $delete_members->close();
-    $delete_family->execute();
-    $delete_family->close();
-}
-
 // Prepare MySQL statement
 $query_families = mysqli_query($conn, "SELECT * FROM registered_families");
 
@@ -36,7 +15,7 @@ $query_organizations = mysqli_query($conn, "SELECT organization,
         family_id_list f
     WHERE registered_families.family_id = f.family_code
     GROUP BY organization
-    ORDER BY registered DESC
+    ORDER BY registered DESC, organization
 ");
 
 $query_family_makeup = mysqli_query($conn, "SELECT
@@ -61,6 +40,9 @@ $query_members = mysqli_query($conn,
         registered_families.date_registered as DATE_REGISTERED,
         registered_families.family_gift as FAMILY_GIFT,
         registered_families.packed as PACKED,
+        registered_families.attended as ATTENDED,
+        registered_families.picked_up as PICKED_UP,
+        registered_families.reservation as RESERVATION,
         registered_members.member_id as MEMBER_ID,
         registered_members.first_name as FIRST_NAME,
         registered_members.age as AGE,
@@ -78,6 +60,7 @@ while($row = mysqli_fetch_array($query_members)){
     $data[$row["FAMILY_NUMBER"]]["fam_phone"] = htmlspecialchars($row["PHONE"]);
     $data[$row["FAMILY_NUMBER"]]["fam_email"] = htmlspecialchars($row["EMAIL"]);
     $data[$row["FAMILY_NUMBER"]]["fam_gift"] = htmlspecialchars($row["FAMILY_GIFT"]);
+    $data[$row["FAMILY_NUMBER"]]["fam_reservation"] = htmlspecialchars($row["RESERVATION"]);
     $data[$row["FAMILY_NUMBER"]]["packed"] = htmlspecialchars($row["PACKED"]);
     $data[$row["FAMILY_NUMBER"]]["register_date"] = ($row["DATE_REGISTERED"]);
     $data[$row["FAMILY_NUMBER"]]["members"][$i] = array(
@@ -88,99 +71,124 @@ while($row = mysqli_fetch_array($query_members)){
     $i++;
 }
 
-function writeToCSV($family_data) {
-    $filename = 'registered-members.csv';
-    ob_clean();
-    $fp = fopen($filename, 'w');
+// SATISFACTION QUERY
+$query_feedback_satisfaction = mysqli_query($conn, "SELECT satisfaction, COUNT(*) AS count FROM feedback GROUP BY satisfaction;");
 
-    $csvHeader = ["Date", "Number", "Code", "Name", "Email", "Phone", "Family Gift", "Name", "Age", "Gift", "Packed"];
-    
-    fputcsv($fp, $csvHeader);
-    
-    foreach($family_data as $family_number => $family) {
-        $register_date = $family["register_date"];
-        $fam_number = $family["fam_number"];
-        $fam_code = $family["fam_code"];
-        $fam_name = $family["fam_name"];
-        $fam_email = $family["fam_email"];
-        $fam_phone = $family["fam_phone"];
-        $fam_gift = $family["fam_gift"];
-    
-        foreach($family["members"] as $member) {
-            $newRow = [$register_date, $fam_number, $fam_code, $fam_name, $fam_email, $fam_phone, $fam_gift, $member["name"], $member["age"], $member["gift"]];
-            fputcsv($fp, $newRow);
-        }
-    }
-    header('Content-type: text/csv');
-    header('Content-disposition:attachment; filename="'.$filename.'"');
-    readfile($filename);
-    
-    fclose($fp);
-
-    unlink($filename);
-
-    exit;
+$satisfaction = [];
+while ($row = mysqli_fetch_assoc($query_feedback_satisfaction)) {
+    $satisfaction[ucfirst($row['satisfaction'])] = $row['count'];
 }
 
-if(isset($_POST['download-csv'])) {
-    writeToCSV($data);
+// FEEDBACK MESSAGES QUERY
+$query_feedback_messages = mysqli_query($conn, "SELECT message FROM feedback WHERE message != '' ORDER BY timestamp DESC;");
+$feedback_messages = mysqli_fetch_all($query_feedback_messages);
+
+// LANGUAGE CHANGES QUERY
+$query_language_changes = mysqli_query($conn, "SELECT language, COUNT(*) AS count FROM language_changes WHERE language != 'english' GROUP BY language;");
+
+$language_changes = [];
+while ($row = mysqli_fetch_assoc($query_language_changes)) {
+    $language_changes[ucfirst($row['language'])] = $row['count'];
 }
+
+// RESERVATIONS QUERY
+$query_reservations = mysqli_query($conn, "SELECT es.value AS timeframe, COUNT(rf.reservation) AS count
+    FROM event_settings es
+    LEFT JOIN registered_families rf ON es.value = rf.reservation
+    WHERE es.name = 'timeframe'
+    GROUP BY es.value, rf.reservation");
+
+$reservations = array();
+while($row = mysqli_fetch_array($query_reservations)){
+    $reservations[$row["timeframe"]] = $row["count"];
+}
+
+// BLOCKED IPs QUERY
+$query_blocked = mysqli_query($conn, "SELECT ip_address, last_attempt FROM failed_attempts WHERE attempts >= 20;");
+$blocked_ips = mysqli_fetch_all($query_blocked);
+
+// ERROR MESSAGES QUERY
+$query_errors = mysqli_query($conn, "SELECT error_type, error_message, error_timestamp FROM error_log ORDER BY error_timestamp DESC;");
+$error_messages = mysqli_fetch_all($query_errors);
+
+// FAMILY NOTES QUERY
+$query_notes = mysqli_query($conn, "SELECT family_number, family_name, notes FROM registered_families WHERE notes <> '';");
+$family_notes = mysqli_fetch_all($query_notes);
+
+// DATE GRAPH QUERY
+$query_dates = mysqli_query($conn, "SELECT DATE_FORMAT(date_registered, '%m-%d') AS the_date, COUNT(*) AS count
+    FROM registered_families
+    GROUP BY the_date
+    ORDER BY the_date;");
+
+$registration_dates = [];
+while ($row = mysqli_fetch_assoc($query_dates)) {
+    $registration_dates[ucfirst($row['the_date'])] = $row['count'];
+}
+
+// ACCESS SOURCE QUERY
+$query_sources = mysqli_query($conn, "SELECT access, COUNT(access) as count FROM registered_families GROUP BY access");
+
+$family_sources = [];
+while ($row = mysqli_fetch_assoc($query_sources)) {
+    $family_sources[ucfirst($row['access'])] = $row['count'];
+}
+
+// SUCCESS ATTEMPTS QUERY
+$query_total_started = mysqli_query($conn, "SELECT COUNT(attempts) as VALID_CODES FROM failed_attempts WHERE attempts = 0;");
+$total_started_form = mysqli_fetch_all($query_total_started)[0][0];
+$total_families = mysqli_num_rows($query_families);
+$percent_completed_form = ($total_started_form != 0) ? number_format((($total_families / $total_started_form) * 100), 2) : 0;
+$abandoned_forms = $total_started_form - $total_families;
 
 $old_members = isset($_COOKIE["old-members"]) ? htmlspecialchars($_COOKIE["old-members"]) : '';
 $old_families = isset($_COOKIE["old-families"]) ? htmlspecialchars($_COOKIE["old-families"]) : '';
 
 $new_members = mysqli_num_rows($query_members);
-$new_families = mysqli_num_rows($query_families);
 
 if($old_families || $old_members) {
     if($new_members - $old_members > 0) {
         $difference_members = $new_members - $old_members;
     }
-    if($new_families - $old_families > 0) {
-        $difference_families = $new_families - $old_families;
+    if($total_families - $old_families > 0) {
+        $difference_families = $total_families - $old_families;
     }
 }
 
 setcookie("old-members", $new_members, time()+(86400 * 30), "/");
-setcookie("old-families", $new_families, time()+(86400 * 30), "/");
+setcookie("old-families", $total_families, time()+(86400 * 30), "/");
 
 $conn->close();
 
 get_header('archive');
 
 ?>
-
-    <?php if ($family_id_delete): ?>
-    <div class='wrapper'>
-        <div class='message message-success'>
-            Family <strong><?php echo htmlspecialchars($family_id_delete); ?></strong> has been deleted.
-        </div>
-    </div>
-    <?php endif; ?>
 </header>
 <main class="registrations-dashboard wrapper">
     <nav class="nav-secondary">
         <a class="active" href="/private-registrations">Registrations Home</a>
+        <a href="/private-registered-families">Families</a>
+        <a href="/private-gifts">Gifts</a>
         <a href="/private-family-code">Family Codes</a>
         <a href="/private-register-family">Register New Family</a>
         <a href="/private-event-settings">Event Settings</a>
+        <a href="/private-event">Event</a>
     </nav>
-    <a class="float-right button button-main-100 jump-to-families" href="#registrations"><i class="bi bi-arrow-down"></i>Jump To Families</a>
-    <h1>Registrations</h1>
+    <h1>Registrations Home</h1>
     <div class="grid">
         <div class="grid grid-2">
             <div class="grid grid-2">
                 <div class="card totals-section">
                     <p>Families <i class="bi bi-house"></i></p>
                     <h2>
-                        <?php echo $new_families; ?>
+                        <?php echo $total_families; ?>
                         <?php if($difference_families) : ?>
                             <span class="new-people">
                                 <?php echo $difference_families ?> new
                             </span>
                         <?php endif; ?>
                     </h2>
-                    <div data-current="<?php echo $new_families; ?>" data-goal="300" class="progress-bar"></div>
+                    <div data-current="<?php echo $total_families; ?>" data-goal="300" class="progress-bar"></div>
                 </div>
                 <div class="card totals-section">
                     <p>Individuals <i class="bi bi-people"></i></p>
@@ -199,6 +207,21 @@ get_header('archive');
                     <h2>Family Makeup</h2>
                     <canvas id="familyMakeupGraph" width="100%"></canvas>
                 </div>
+
+                <div class="card totals-section">
+                    <p>Completed Forms</p>
+                    <h2>
+                        <?php echo $percent_completed_form; ?>%
+                    </h2>
+                    <div data-current="<?php echo $total_families ?>" data-goal="<?php echo $total_started_form; ?>" class="progress-bar"></div>
+                </div>
+                <div class="card totals-section">
+                    <p>Abandoned Forms</p>
+                    <h2>
+                        <?php echo $abandoned_forms; ?>
+                    </h2>
+                    <div data-current="<?php echo $abandoned_forms ?>" data-goal="<?php echo $total_started_form; ?>" class="progress-bar"></div>
+                </div>
             </div>
             
             <div class="card">
@@ -214,83 +237,102 @@ get_header('archive');
                 <?php endforeach; ?>
             </div>
         </div>
+        
+        <div class="grid grid-4">
+            <div class="card totals-section">
+                <p>Form Satisfaction</p>
+                <canvas id="satisfactionGraph" width="100%"></canvas>
+            </div>
+            <div class="card totals-section">
+                <p>Language Changes</p>
+                <canvas id="languageGraph" width="100%"></canvas>
+            </div>
+            <div class="card span-2 totals-section">
+                <p>Reservation Times</p>
+                <canvas id="reservationsGraph" width="100%"></canvas>
+            </div>
+        </div>
+        
+        <div class="grid grid-2">
+            <div class="card totals-section">
+                <p>Date Registered</p>
+                <canvas id="dateGraph" width="100%"></canvas>
+            </div>
+            <div class="card totals-section">
+                <p>Source</p>
+                <canvas id="sourceGraph" width="100%"></canvas>
+            </div>
+        </div>
 
-        <div id="registrations" class="card registrations">
-            <div class="options-container" id="registered-families-options">
-                <button class="edit-family button button-gray-150" onclick="toggleMenu('registered')" title="registration options">
-                    <i class="bi bi-three-dots-vertical"></i>
-                </button>
-                <div class="options-menu">
-                    <a class="options-menu-item button" href="/private-register-family">
-                        <i class="bi bi-person-plus"></i>
-                        <p>Add Family</p>
-                    </a>
-                    <button class="options-menu-item" onclick="window.print()">
-                        <i class="bi bi-printer"></i>
-                        <p>Print Labels</p>
-                    </button>
-                    <form method="post" hidden id="download-csv"></form>
-                    <button class="options-menu-item" form="download-csv" name="download-csv" value="true">
-                        <i class="bi bi-download"></i>
-                        <p>Download CSV</p>
-                    </button>
-                    <button class="options-menu-item" id="expand-contract" onclick="toggleAllTables()">
-                        <i class="bi bi-arrows-angle-expand"></i>
-                        <p>Expand All</p>
-                    </button>
-                    <button class="options-menu-item" onclick="resetPrinted()">
-                        <i class="bi bi-arrow-clockwise"></i>
-                        <p>Reset Printed</p>
-                    </button>
-                    <button class="options-menu-item" onclick="markAllPacked()">
-                        <i class="bi bi-check2"></i>
-                        <p>Mark Visible as Packed</p>
-                    </button>
-                    <button class="options-menu-item" onclick="markAllNotPacked()">
-                        <i class="bi bi-square"></i>
-                        <p>Mark Visible as Not Packed</p>
-                    </button>
-                </div>
+        <div class="card">
+            <h2>Family Notes</h2>
+            <p>This includes any and all family notes made by registration admin.</p>
+
+            <table class="table-padded">
+                <thead>
+                    <tr>
+                        <td>#</td>
+                        <td>Name</td>
+                        <td class="width-100">Note</td>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php foreach($family_notes as $note) : ?>
+                    <tr>
+                        <td>
+                            <a title="View Family" href="/private-registered-families#family-<?php echo htmlspecialchars($note[0]) ?>"><?php echo htmlspecialchars($note[0]) ?></a>
+                        </td>
+                        <td><?php echo htmlspecialchars($note[1]) ?></td>
+                        <td><?php echo htmlspecialchars($note[2]) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Feedback Messages</h2>
+            <p>This includes all messages from the feedback survey filled out at the end of registration.</p>
+
+            <?php foreach($feedback_messages as $msg) : ?>
+
+            <div class="message card-message">
+                <p><?php echo htmlspecialchars($msg[0]) ?></p>
             </div>
 
-            <h2>Registered Families</h2>
+            <?php endforeach; ?>
+        </div>
 
-            <div class="registration-filters flex flex-sm flex-center flex-wrap">
-                <input type="search" id="searchFamilies" onkeyup="searchFamilies()" placeholder="Search for family, name, or family code">
+        <div class="card">
+            <h2>Error Log</h2>
+            <p>This includes all error messages generated in the application. Admin uses this to squash bugs.</p>
 
-                <div class="filter-options">
-                    <button id="not-packed" onclick="filterFamilies('not-packed')">
-                        <strong>0</strong> Not Packed
-                    </button>
-                    <button id="packed" onclick="filterFamilies('packed')">
-                        <strong>0</strong> Packed
-                    </button>
-                    <button id="not-printed" onclick="filterFamilies('not-printed')">
-                        <strong>0</strong> Not Printed
-                    </button>
-                    <button id="printed" onclick="filterFamilies('printed')">
-                        <strong>0</strong> Printed
-                    </button>
-                </div>
+            <?php foreach($error_messages as $msg) : 
+                $datetime = new DateTime($msg[2]);
+                $datetime->modify('-5 hours');
+                ?>
+
+            <div class="message card-message">
+                <p><strong><?php echo strtoupper($msg[0]) ?></strong> <?php echo $datetime->format("M j, Y g:ia"); ?></p>
+                <p style="margin-top: .25rem"><?php echo htmlspecialchars($msg[1]) ?></p>
             </div>
 
-            <div id="family-member-cards" class="family-member-cards grid grid-2"></div>
+            <?php endforeach; ?>
+        </div>
 
-            <dialog id="delete-confirmation">
-                <h2>Delete <span id="lastname"></span> family</h2>
-                <form action="" method="post" class="register-form">
-                    <label for="family-id-delete">This family code will be unregistered</label>
-                    <input name="family-id-delete" id="family-id-delete" type="text" readonly required>
+        <div class="card">
+            <h2>Blocked IPs</h2>
+            <p>If a user makes too many failed attempts to register their invite code, their IP address will appear below. This is to protect against bots and people who don't actually have an invite. Please contact site administrator to help unblock them if they call, have a valid code, and are a human.</p>
 
-                    <label for="confirm">To confirm, type DELETE</label>
-                    <input name="confirm" id="confirm" type="text" pattern="DELETE" placeholder="DELETE" required>
+            <?php foreach($blocked_ips as $ip) : 
+                $datetime = new DateTime($ip[1]);
+                $datetime->modify('-5 hours'); ?>
 
-                    <div class="buttons buttons-right">
-                        <button class="button-gray-100" type="button" onclick="document.getElementById('delete-confirmation').close();">Cancel</button>
-                        <button class="button button-primary" type="submit">Delete</button>
-                    </div>
-                </form>
-            </dialog>
+            <ul>
+                <li><?php echo "<strong>" . htmlspecialchars($ip[0]) . "</strong> on " . $datetime->format("M j, Y g:ia") . "</i>" ?></li>
+            </ul>
+
+            <?php endforeach; ?>
         </div>
     </div>
     
@@ -323,8 +365,32 @@ get_header('archive');
 
         const goal = parseInt(bar.dataset.goal);
         const currentProgress = parseInt(bar.dataset.current);
+        const percentProgress = (currentProgress / goal) * 100;
         
-        progress.style.width = (currentProgress / goal) * 100 + "%";
+        progress.style.width = percentProgress + "%";
+
+        switch (true) {
+            case (percentProgress >= 0 && percentProgress <= 10):
+                progress.style.background = "#fee2e2";
+                break;
+            case (percentProgress > 10 && percentProgress <= 20):
+                progress.style.background = "#ffedd5";
+                break;
+            case (percentProgress > 20 && percentProgress <= 30):
+                progress.style.background = "#fef3c7";
+                break;
+            case (percentProgress > 30 && percentProgress <= 40):
+                progress.style.background = "#fef9c3";
+                break;
+            case (percentProgress > 40 && percentProgress <= 50):
+                progress.style.background = "#d9f99d";
+                break;
+            case (percentProgress > 50 && percentProgress <= 100):
+                progress.style.background = "#d9f99d";
+                break;
+            default:
+                console.log("Out of range");
+        }
     }
 
     const organizations = document.querySelectorAll(".card-organization");
@@ -342,74 +408,8 @@ get_header('archive');
         }
     }
 
-    document.addEventListener('keydown', evt => {
-        if (evt.key === 'Escape') {
-            closeMenus();
-        }
-    });
-
-    function searchFamilies() {
-        // Declare variables
-        var input, familiesContainer, families, dataSet, data, i, txtValue, match;
-        input = document.getElementById("searchFamilies").value.toUpperCase();
-        familiesContainer = document.getElementById("family-member-cards");
-        families = familiesContainer.getElementsByClassName("family-card");
-
-        for (i = 0; i < families.length; i++) {
-            dataSet = families[i].querySelectorAll(".family-info h3, .family-info p, .fam-number");
-            match = false;
-
-            for(a = 0; a < dataSet.length; a++) {
-                data = dataSet[a];
-
-                if (data) {
-                    txtValue = data.textContent || data.innerText;
-                    if (txtValue.toUpperCase().indexOf(input) > -1) {
-                        match = true;
-                        if(input != "") {
-                            data.style.background = "var(--color-success-100)";
-                        } else {
-                            data.style.background = "";
-                        }
-                    } else {
-                        data.style.background = "";
-                    }
-                }
-            }
-
-            if (match) {
-                families[i].classList.remove("hide");
-            } else {
-                families[i].classList.add("hide");
-            }
-            
-        }
-    }
-
-    function editFamily(id) {
-        var data = new URLSearchParams();
-        data.append("edit-family", id);
-        
-        var url = "/private-register-family?" + data.toString();
-        location.href = url;
-    }
-
-    function deleteFamily(id, lastname) {
-        let confirmationForm = document.getElementById("delete-confirmation");
-        let lastNameText = document.getElementById("lastname");
-        let idText = document.getElementById("family-id-delete");
-        let confirmationText = document.getElementById("confirm");
-
-        confirmationForm.showModal();
-        idText.value = id;
-        lastNameText.innerHTML = lastname;
-        confirmationText.value = "";
-        confirmationText.focus();
-    }
-
     const familyMakeup = <?php echo json_encode($family_makeup_info[0]) ?>;
-    const spanFamilyMakeup = document.getElementById("familyMakeup");
-    const ctx = document.getElementById("familyMakeupGraph");
+    const ctx_familyMakeup = document.getElementById("familyMakeupGraph");
 
     var makeupLabels = [];
     var makeupNumbers = [];
@@ -417,10 +417,10 @@ get_header('archive');
     for(var ageGroup in familyMakeup) {
         makeupNumbers.push(parseInt(familyMakeup[ageGroup]));
         makeupLabels.push(ageGroup);
-        ctx.innerHTML += ("<p>" + ageGroup + ": " + familyMakeup[ageGroup] + "</p>");
+        ctx_familyMakeup.innerHTML += ("<p>" + ageGroup + ": " + familyMakeup[ageGroup] + "</p>");
     }
 
-    const data = {
+    const data_familyMakeup = {
         labels: makeupLabels,
         datasets: [{
             label: "Registered Members",
@@ -436,10 +436,9 @@ get_header('archive');
             cutout: '66%',
         }]
     };
-
-    const config = {
+    const config_familyMakeup = {
         type: 'doughnut',
-        data: data,
+        data: data_familyMakeup,
         options: {
             plugins: {
                 legend: {
@@ -454,77 +453,187 @@ get_header('archive');
         }
     };
 
-    const donutChart = new Chart(ctx, config);
 
-    // toggle "family options" menu
-    function toggleMenu(id) {
-        let menu;
-
-        if(id == "registered") {
-            menu = document.querySelector("#registered-families-options .options-menu");
-        } else {
-            menu = document.querySelector("#family-" + id + " .options-menu");
-        }
-
-        if(menu.classList.contains('open')) {
-            closeMenus();
-        } else {
-            closeMenus();
-            menu.classList.add('open');
-        }
-    }
-
-    // toggle table show
-    function toggleTable(id) {
-        let table = document.querySelector("#family-" + id + " table.family-members");
-        let arrow_icon = document.querySelector("#family-" + id + " button.family-members .bi-chevron-down");
-
-        table.classList.toggle('open');
-        arrow_icon.classList.toggle('open');
-
-        closeMenus();
-    }
-
-    function toggleAllTables() {
-        let tables = document.querySelectorAll('table');
-        let arrows = document.querySelectorAll(".bi-chevron-down");
-        let expand_contract = document.getElementById('expand-contract');
-        let icon = expand_contract.querySelector('.bi');
-        let icon_label = expand_contract.querySelector('p');
-
-        if(icon_label.innerText == "Expand All") {
-            icon.classList.remove('bi-arrows-angle-expand');
-            icon.classList.add('bi-arrows-angle-contract');
-            icon_label.innerText = "Contract All";
-
-            for (i = 0; i < tables.length; i++) {
-                tables[i].classList.add('open');
-            }
-
-            for (i = 0; i < arrows.length; i++) {
-                arrows[i].classList.add('open');
-            }
-        } else {
-            icon.classList.remove('bi-arrows-angle-contract');
-            icon.classList.add('bi-arrows-angle-expand');
-            icon_label.innerText = "Expand All";
-
-            for (i = 0; i < tables.length; i++) {
-                tables[i].classList.remove('open');
-            }
-
-            for (i = 0; i < arrows.length; i++) {
-                arrows[i].classList.remove('open');
+    const satisfaction = <?php echo json_encode($satisfaction) ?>;
+    const ctx_satisfaction = document.getElementById("satisfactionGraph");
+    const data_satisfaction = {
+        labels: Object.keys(satisfaction),
+        datasets: [{
+            label: "Satisfaction",
+            data: Object.values(satisfaction),
+            backgroundColor: [
+                '#fecaca',
+                '#bbf7cd',
+                '#fef08a'
+            ],
+            hoverOffset: 5,
+            cutout: '0%',
+        }]
+    };
+    const config_satisfaction = {
+        type: 'doughnut',
+        data: data_satisfaction,
+        options: {
+            plugins: {
+                legend: {
+                    display: false
+                }
             }
         }
+    };
 
-        toggleMenu("registered");
-    }
+
+    const language = <?php echo json_encode($language_changes) ?>;
+    const ctx_language = document.getElementById("languageGraph");
+    const data_language = {
+        labels: Object.keys(language),
+        datasets: [{
+            label: "Language Changes",
+            data: Object.values(language),
+            backgroundColor: [
+                '#f87171',
+                '#991b1b'
+            ],
+            hoverOffset: 5,
+            cutout: '0%',
+        }]
+    };
+    const config_language = {
+        type: 'bar',
+        data: data_language,
+        options: {
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    };
+
+    const reservations = <?php echo json_encode($reservations) ?>;
+    const ctx_reservations = document.getElementById("reservationsGraph");
+    const data_reservations = {
+        labels: Object.keys(reservations),
+        datasets: [{
+            label: "Reservations",
+            data: Object.values(reservations),
+            backgroundColor: [
+                '#fecaca',
+                '#f87171',
+                '#dc2626',
+                '#991b1b',
+                '#450a0a'
+            ],
+            hoverOffset: 5,
+            cutout: '0%',
+        }]
+    };
+    const config_reservations = {
+        type: 'bar',
+        data: data_reservations,
+        options: {
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        stepSize: 10
+                    }
+                }
+            }
+        }
+    };
+
+    const timestamps = <?php echo json_encode($registration_dates) ?>;
+    const ctx_timestamps = document.getElementById("dateGraph");
+    const data_timestamps = {
+        labels: Object.keys(timestamps),
+        datasets: [{
+            label: "Total registered on this date",
+            data: Object.values(timestamps),
+            backgroundColor: [
+                '#f87171',
+            ],
+            borderColor: '#f87171',
+        }]
+    };
+    const config_timestamps = {
+        type: 'line',
+        data: data_timestamps,
+        options: {
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 10
+                    }
+                }
+            }
+        }
+    };
+
+    const sources = <?php echo json_encode($family_sources) ?>;
+    const ctx_sources = document.getElementById("sourceGraph");
+    const data_sources = {
+        labels: Object.keys(sources),
+        datasets: [{
+            label: "Access Source",
+            data: Object.values(sources),
+            backgroundColor: [
+                '#fecaca',
+                '#f87171',
+                '#dc2626',
+                '#991b1b',
+                '#450a0a'
+            ],
+            hoverOffset: 5,
+            cutout: '0%',
+        }]
+    };
+    const config_sources = {
+        type: 'bar',
+        data: data_sources,
+        options: {
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 10
+                    }
+                }
+            }
+        }
+    };
+
+    const donutChart_familyMakeup = new Chart(ctx_familyMakeup, config_familyMakeup);
+    const donutChart_satisfaction = new Chart(ctx_satisfaction, config_satisfaction);
+    const donutChart_language = new Chart(ctx_language, config_language);
+    const donutChart_reservations = new Chart(ctx_reservations, config_reservations);
+    const donutChart_timestamps = new Chart(ctx_timestamps, config_timestamps);
+    const donutChart_sources = new Chart(ctx_sources, config_sources);
 
     (function fetchFamilies() {
-        document.getElementById("family-member-cards").innerHTML = "";
-
-        let url = 'https://registration.communitychristmasfoxcities.org/private/fetch-families.php/';
+        let url = 'https://registration.christmas.sharethedreamwi.org/private/fetch-families.php/';
 
         let headers = new Headers();
         headers.set('Authorization', 'Basic ' + btoa(user + ":" + pass));
@@ -535,368 +644,12 @@ get_header('archive');
             })
             .then(function (body) {
                 if(body == "Authorization required") {
-                    document.getElementById("family-member-cards").innerHTML += "<div class='message message-error'>Authorization failed</div>";
+                    console.error("Database authorization failed.")
                 } else {
                     allFamilies = JSON.parse(body);
-
-                    let i = 0;
-                    for(family in allFamilies) {
-                        createCard(allFamilies[family], i, allFamilies.length);
-                        i++;
-                    }
-
-                    for(family in allFamilies) {
-                        theFamily = allFamilies[family];
-                        for(mem in theFamily['members']) {
-                            member = theFamily['members'][mem];
-                            createMemberTables(member, theFamily['fam_number']);
-                        }
-                    }
-
-                    generatePacked();
-                    setPrinted();
                 }
             });
     })();
-
-    function createCard(family, i, totalFamilies) {
-        let container = document.getElementById("family-member-cards");
-        let s = '';
-
-        if(family['members'].length != 1) {
-            s = 's';
-        }
-
-        let newCard = `
-            <div class='family-card' id="family-` + family['fam_number'] + `" data-packed="` + family['packed'] + `" data-printed="false">
-                <div class="options-container">
-                    <button class="edit-family button button-gray-100" onclick="toggleMenu(` + family['fam_number'] + `)" title="family options">
-                        <i class="bi bi-three-dots-vertical"></i>
-                    </button>
-                    <div class="options-menu">
-                        <a class="options-menu-item button" href="mailto:` + family['fam_email'] + `">
-                            <i class="bi bi-envelope"></i>
-                            <p>` + family['fam_email'] + `</p>
-                        </a>
-                        <a class="options-menu-item button" href="tel:` + family['fam_phone'] + `">
-                            <i class="bi bi-telephone"></i>
-                            <p>` + family['fam_phone'] + `</p>
-                        </a>
-                        <button class="options-menu-item" onclick="editFamily(` + family['fam_number'] + `)">
-                            <i class="bi bi-pencil-square"></i>
-                            <p>Edit Familiy</p>
-                        </button>
-                        <button class="options-menu-item delete" onclick="deleteFamily('` + family['fam_code'] + `', '` + family['fam_name'] + `')">
-                            <i class="bi bi-trash"></i>
-                            <p>Delete Family</p>
-                        </button>
-                    </div>
-                </div>
-                
-                <button class="edit-family mark-packed button button-gray-100" onclick="togglePacked(` + family['fam_number'] + `)" title="mark packed">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </button>
-
-                <div class="family-info flex flex-sm flex-bottom flex-wrap">
-                    <span class="fam-number">` + family['fam_number'] + `</span>
-                    <h3 class="fam-name">` + family['fam_name'] + `</h3>
-                    <p class="fam-code">` + family['fam_code'] + `</p>
-                </div>
-
-                <div class="buttons">
-                    <button class="family-members button-gray-100 flex flex-xs flex-center flex-wrap" onclick="toggleTable(` + family['fam_number'] + `)">
-                        <i class="bi bi-people"></i>
-                        <p>
-                            <span class="fam-members">` + family['members'].length + `</span>
-                            family member` + s + `
-                            <i class="bi bi-chevron-down"></i>
-                        </p>
-                    </button>
-                    <span class="family-gift button button-gray-150" data-gift="` + family['fam_gift'] + `">` + family['fam_gift'] + `</span>
-                </div>
-
-                <table class='family-members'>
-                    <thead>
-                        <tr>
-                            <td>Name</td>
-                            <td>Age</td>
-                            <td>Gift</td>
-                        </tr>
-                    </thead>
-
-                    <tbody id="family-members-table-` + family['fam_number'] + `"></tbody>
-                </table>
-
-                <i class='bi bi-printer-fill'></i>
-            </div>
-        `;
-
-        container.insertAdjacentHTML("beforeend", newCard);
-    }
-
-    function createMemberTables(member, family_number) {
-        let table = document.getElementById("family-members-table-" + family_number);
-        let newRow = `
-            <tr>
-                <td>` + member['name'] + `</td>
-                <td>` + member['age'] + `</td>
-                <td>` + member['gift'] + `</td>
-            </tr>`; 
-        table.insertAdjacentHTML("beforeend", newRow);
-    }
-
-    function closeMenus() {
-        let menus = document.querySelectorAll(".options-menu");
-
-        menus.forEach(function(menu) {
-            menu.classList.remove("open");
-        });
-    }
-
-    function filterFamilies(filter = null, maintain = false) {
-        let button_packed = document.querySelector('#packed');
-        let button_notPacked = document.querySelector('#not-packed');
-        let button_printed = document.querySelector('#printed');
-        let button_notPrinted = document.querySelector('#not-printed');
-
-        let packed = document.querySelectorAll("[data-packed='1']");
-        let notPacked = document.querySelectorAll("[data-packed='0']");
-        let printed = document.querySelectorAll("[data-printed='false']");
-        let notPrinted = document.querySelectorAll("[data-printed='true']");
-
-        let previousFilter = currentFilter;
-
-        if(filter) {
-            currentFilter = filter;
-        }
-
-        button_packed.classList.remove('active');
-        packed.forEach(function(el) {
-            el.classList.remove('hide');
-        });
-        button_notPacked.classList.remove('active');
-        notPacked.forEach(function(el) {
-            el.classList.remove('hide');
-        });
-        button_printed.classList.remove('active');
-        printed.forEach(function(el) {
-            el.classList.remove('hide');
-        });
-        button_notPrinted.classList.remove('active');
-        notPrinted.forEach(function(el) {
-            el.classList.remove('hide');
-        });
-
-        switch(currentFilter) {
-            case 'packed':
-                if(previousFilter != 'packed' || maintain) {
-                    button_packed.classList.add('active');
-                    notPacked.forEach(function(el) {
-                        el.classList.add('hide');
-                    });
-                } else {
-                    currentFilter = null;
-                }
-
-                break;
-            case 'not-packed':
-                if(previousFilter != 'not-packed' || maintain) {
-                    button_notPacked.classList.add('active');
-                    packed.forEach(function(el) {
-                        el.classList.add('hide');
-                    });
-                } else {
-                    currentFilter = null;
-                }
-
-                break;
-            case 'printed':
-                if(previousFilter != 'printed' || maintain) {
-                    button_printed.classList.add('active');
-                    printed.forEach(function(el) {
-                        el.classList.add('hide');
-                    });
-                } else {
-                    currentFilter = null;
-                }
-
-                break;
-            case 'not-printed':
-                if(previousFilter != 'not-printed' || maintain) {
-                    button_notPrinted.classList.add('active');
-                    notPrinted.forEach(function(el) {
-                        el.classList.add('hide');
-                    });
-                } else {
-                    currentFilter = null;
-                }
-
-                break;
-        }
-    }
-
-    function togglePacked(number, pack=null) {
-        let family = document.querySelector('#family-' + number);
-        let formData = new FormData();
-        formData.append('number', number);
-        if(!pack) {
-            formData.append('pack', family.dataset.packed);
-        } else if(pack == "yes") {
-            formData.append('pack', 0);
-        } else if(pack == "no") {
-            formData.append('pack', 1);
-        }
-
-        let url = 'https://registration.communitychristmasfoxcities.org/private/toggle-packed.php';
-        let headers = new Headers();
-        headers.set('Authorization', 'Basic ' + btoa(user + ":" + pass));
-
-        fetch(url, { method: 'POST', body: formData, headers: headers })
-            .then(function (response) {
-            return response.text();
-        })
-            .then(function (body) {
-            if(body == "true") {
-                if(family.dataset.packed == '1') {
-                    family.dataset.packed = '0';
-                } else {
-                    family.dataset.packed = '1';
-                }
-                generatePacked();
-                setTimeout(function() {
-                    filterFamilies(null, true);
-                }, 3000);
-            } else {
-                console.error(body);
-            }
-        });
-    }
-
-    function markAllPacked() {
-        let visibleFamilies = document.querySelectorAll("#family-member-cards .family-card:not(.hide)");
-
-        for(let i = 0; i < visibleFamilies.length; i++) {
-            let number = parseInt(visibleFamilies[i].querySelector(".fam-number").innerText);
-            togglePacked(number, "yes");
-        }
-    }
-
-    function markAllNotPacked() {
-        let visibleFamilies = document.querySelectorAll("#family-member-cards .family-card:not(.hide)");
-
-        for(let i = 0; i < visibleFamilies.length; i++) {
-            let number = parseInt(visibleFamilies[i].querySelector(".fam-number").innerText);
-            togglePacked(number, "no");
-        }
-    }
-
-    function generatePacked() {
-        let packed = document.querySelector('#packed');
-        let notPacked = document.querySelector('#not-packed');
-
-        let numPacked = document.querySelectorAll("#family-member-cards [data-packed='1']").length;
-        let numNotPacked = document.querySelectorAll("#family-member-cards [data-packed='0']").length;
-
-        packed.querySelector("strong").innerText = numPacked;
-        notPacked.querySelector("strong").innerText = numNotPacked;
-    };
-
-    window.onload = function() {
-        window.addEventListener('beforeprint', formatPrint);
-        window.addEventListener('afterprint', undoFormatPrint);
-    };
-
-    function formatPrint() {
-        let cards = document.querySelectorAll("#family-member-cards .family-card:not(.hide)");
-        document.getElementById("family-member-cards").classList.add("hide");
-
-        let fragment = document.createDocumentFragment();
-        let printedFamilies = document.createElement("span");
-        printedFamilies.id = "print";
-        printedFamilies.classList.add("family-member-cards", "grid");
-
-        for (let i = 0; i < cards.length; i += 2) {
-            let pageSpan = document.createElement("span");
-            pageSpan.classList.add("page-break", "grid", "grid-2");
-
-            if (i + 1 < cards.length) {
-                pageSpan.appendChild(cards[i].cloneNode(true));
-                pageSpan.appendChild(cards[i + 1].cloneNode(true));
-            } else {
-                pageSpan.appendChild(cards[i].cloneNode(true));
-            }
-
-            fragment.appendChild(pageSpan);
-        }
-
-        printedFamilies.appendChild(fragment);
-        
-        let referenceNode = document.getElementById("family-member-cards");
-        referenceNode.parentNode.insertBefore(printedFamilies, referenceNode.nextSibling);
-    }
-
-    function undoFormatPrint() {
-        document.getElementById("family-member-cards").classList.remove("hide");
-
-        if(document.getElementById("print")) {
-            document.getElementById("print").remove();
-            printLabels();
-        }
-    }
-
-    function setPrinted() {
-        let printedNumbers = localStorage.getItem('printedNumbers') ? JSON.parse(localStorage.getItem('printedNumbers')) : [];
-
-        if(printedNumbers) {
-            for(x of printedNumbers) {
-                let familyCard = document.getElementById("family-" + x);
-
-                if(familyCard) {
-                    familyCard.dataset.printed = "true";
-                }
-            }
-        }
-
-        let printed = document.querySelector('#printed');
-        let notPrinted = document.querySelector('#not-printed');
-
-        let numPrinted = document.querySelectorAll("#family-member-cards [data-printed='true']").length;
-        let numNotPrinted = document.querySelectorAll("#family-member-cards [data-printed='false']").length;
-
-        printed.querySelector("strong").innerText = numPrinted;
-        notPrinted.querySelector("strong").innerText = numNotPrinted;
-    }
-
-    function printLabels() {
-        let printed = document.querySelectorAll("#family-member-cards .family-card:not(.hide)");
-        let printedNumbers = localStorage.getItem('printedNumbers') ? JSON.parse(localStorage.getItem('printedNumbers')) : [];
-
-        if (confirm("Mark " + printed.length + " family labels as printed?") == true) {
-            for(let i = 0; i < printed.length; i++) {
-                let number = parseInt(printed[i].querySelector(".fam-number").innerText);
-
-                if(printedNumbers.indexOf(number) === -1) {
-                    printedNumbers.push(number);
-                }
-            }
-
-            localStorage.setItem('printedNumbers', JSON.stringify(printedNumbers));
-
-            setPrinted();
-        }
-    }
-
-    function resetPrinted() {
-        localStorage.removeItem('printedNumbers');
-
-        let printed = document.querySelectorAll("[data-printed='true']");
-        for(let i = 0; i < printed.length; i++) {
-            printed[i].dataset.printed = 'false';
-        }
-
-        setPrinted();
-        filterFamilies(null, true);
-    }
 </script>
 
 

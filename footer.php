@@ -2,7 +2,7 @@
     <footer>
         <div class="grid grid-3">
             <div class="footer-main">
-                <img src="/wp-content/uploads/2023/07/logo-white.png" alt="Community Christmas Logo">
+                <img src="/wp-content/uploads/2023/09/std_ornament.png" alt="Share the Dream of Christmas Logo">
 
                 <div>
                     <a href="/">
@@ -12,6 +12,12 @@
                     <a href="http://www.natebarlow.me" target="_blank">
                         Website designed/developed by <u>Nate Barlow</u>
                     </a>
+
+                    <br>
+
+                    <a href="/privacy-policy">
+                        Privacy Policy
+                    </a>
                 </div>
             </div>
             <div id="footer-contact" class="footer-contact">
@@ -19,12 +25,10 @@
 
                 <ul>
                     <li class="email">
-                        <a href="mailto:communitychristmasfoxcities@gmail.com">communitychristmasfoxcities@gmail.com
-                        </a>
+                        <a href="mailto:christmas@sharethedreamwi.org">christmas@sharethedreamwi.org</a>
                     </li>
                     <li class="phone">
-                        <a href="tel:+19205742199">(920) 574-2199
-                        </a>
+                        <a href="tel:+19205742199">(920) 574-2199</a>
                     </li>
                     <li class="address">
                         <address>

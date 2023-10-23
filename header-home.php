@@ -15,6 +15,18 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
 
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-11348359547"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'AW-11348359547');
+
+        // Page View Conversion
+        gtag('event', 'conversion', {'send_to': 'AW-11348359547/nFU8COPjp-UYEPvyqKMq'});
+    </script>
+
     <?php wp_head(); ?>
 </head>
 
@@ -29,7 +41,7 @@
                 <a class="header-link" href="<?php echo esc_url(home_url()) ?>">
                     <img
                         id="custom-header"
-                        src="/wp-content/uploads/2023/07/logo-white.png"
+                        src="/wp-content/uploads/2023/09/std-logo-cream.png"
                         height="<?php echo get_custom_header()->height; ?>"
                         width="<?php echo get_custom_header()->width; ?>"
                         alt="<?php bloginfo( 'description' ); ?>"

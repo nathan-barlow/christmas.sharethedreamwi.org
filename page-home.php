@@ -7,7 +7,7 @@ get_header( 'home' );
         <h1><?php bloginfo( 'description' ); ?></h1>
         <div class="buttons">
             <a class="button" href="/help-out">See how you can help</a>
-            <a class="button button-white" href="/resources">Resources for families in need</a>
+            <a class="button button-gray-100" href="/resources">Resources for families in need</a>
         </div>
 
         <div class="snowflakes">

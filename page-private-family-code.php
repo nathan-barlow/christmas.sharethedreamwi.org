@@ -76,16 +76,19 @@ if (isset($_POST['organizations'])) {
 
 ?>
 </header>
-<main class="registrations-dashboard wrapper">
+<main class="registrations-dashboard wrapper wrapper-wide">
     <nav class="nav-secondary">
         <a href="/private-registrations">Registrations Home</a>
+        <a href="/private-registered-families">Families</a>
+        <a href="/private-gifts">Gifts</a>
         <a class="active" href="/private-family-code">Family Codes</a>
         <a href="/private-register-family">Register New Family</a>
         <a href="/private-event-settings">Event Settings</a>
+        <a href="/private-event">Event</a>
     </nav>
     <h1>Family Codes</h1>
     <div class="grid grid-3">
-        <div class="span-2">
+        <div class="span-2 grid">
             <form action="#" method="post" class="code-generator card" id="code-generator">
                 <label for="organizations"><strong>Organizations</strong></label>
                 <p>Enter a list of organizations, each separated by a new line (by typing the enter/return key). After you've typed all organizations you would like to add, click "Enter Quantities" and select how many invite codes you need for each organization (max 200 per form submit). The new codes will populate into a new table on the right, which you can copy and paste into a spreadsheet.</p>
@@ -96,8 +99,43 @@ if (isset($_POST['organizations'])) {
                 <div id="code-generator-fields"></div>
                 
                 <button id="enter-quantities" class="button-main-100" type="button" onclick='generateOrganizations()'>Enter Quantities</button>
-                <button id="submit-button" class="button hide" type='submit'>Submit</button>
+
+                <div class="buttons hide" id="hidden-buttons">
+                    <button id="goback-button" class="button button-gray-150" type='button' onclick='goBack()'>Go Back</button>
+                    <button id="submit-button" class="button" type='submit'>Submit</button>
+                </div>
             </form>
+
+            <div class="card">
+                <?php
+                    $query_organizations = mysqli_query($conn, "SELECT organization as ORGANIZATION,
+                        COUNT(organization) AS INVITES
+                        FROM
+                            family_id_list
+                        GROUP BY
+                            organization
+                    ");
+
+                    $organizations = mysqli_fetch_all($query_organizations, MYSQLI_ASSOC);?>
+                <table>
+                    <thead>
+                        <tr>
+                            <td>Organization</td>
+                            <td>Number of Invites</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                            foreach($organizations as $org){
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars(stripslashes($org["ORGANIZATION"])) . "</td>";
+                                echo "<td>" . htmlspecialchars($org["INVITES"]). "</td>";
+                                echo "</tr>";
+                            }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div>
@@ -105,6 +143,35 @@ if (isset($_POST['organizations'])) {
                 <div>
                     <button class="button-main-100" onclick="copyToClipboard('family-codes-new', this)"><i class="bi bi-clipboard"></i>Copy new codes</button>
     
+                    <div class="container-max-height">
+                        <table class="family-codes-table">
+                            <thead>
+                                <tr>
+                                    <td>Code</td>
+                                    <td>Organization</td>
+                                </tr>
+                            </thead>
+                            <tbody id="family-codes-new">
+                                <?php
+                                    foreach($codes as $code){
+                                        echo "<tr>";
+                                        echo "<td>" . $code["code"] . "</td>";
+                                        echo "<td>" . htmlspecialchars(stripslashes($code["organization"])). "</td>";
+                                        echo "</tr>";
+                                    }
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <div>
+            <?php
+                $family_codes = mysqli_query($conn, "SELECT * FROM family_id_list ORDER BY organization, family_code");?>
+                <button class="button-main-100" onclick="copyToClipboard('family-codes-table', this)"><i class="bi bi-clipboard"></i>Copy <? echo mysqli_num_rows($family_codes) ?> codes</button>
+
+                <div class="container-max-height">
                     <table class="family-codes-table">
                         <thead>
                             <tr>
@@ -112,43 +179,19 @@ if (isset($_POST['organizations'])) {
                                 <td>Organization</td>
                             </tr>
                         </thead>
-                        <tbody id="family-codes-new">
+                        <tbody id="family-codes-table">
+                            
                             <?php
-                                foreach($codes as $code){
+                                while($row = mysqli_fetch_array($family_codes)){
                                     echo "<tr>";
-                                    echo "<td>" . $code["code"] . "</td>";
-                                    echo "<td>" . htmlspecialchars(stripslashes($code["organization"])). "</td>";
+                                    echo "<td>" . $row["family_code"] . "</td>";
+                                    echo "<td>" . htmlspecialchars(stripslashes($row["organization"])) . "</td>";
                                     echo "</tr>";
                                 }
                             ?>
                         </tbody>
                     </table>
                 </div>
-            <?php endif; ?>
-
-            <div>
-                <button class="button-main-100" onclick="copyToClipboard('family-codes-table', this)"><i class="bi bi-clipboard"></i>Copy all codes</button>
-
-                <table class="family-codes-table">
-                    <thead>
-                        <tr>
-                            <td>Code</td>
-                            <td>Organization</td>
-                        </tr>
-                    </thead>
-                    <tbody id="family-codes-table">
-                        <?php
-                            $family_codes = mysqli_query($conn, "SELECT * FROM family_id_list ORDER BY organization, family_code");
-
-                            while($row = mysqli_fetch_array($family_codes)){
-                                echo "<tr>";
-                                echo "<td>" . $row["family_code"] . "</td>";
-                                echo "<td>" . htmlspecialchars(stripslashes($row["organization"])) . "</td>";
-                                echo "</tr>";
-                            }
-                        ?>
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>
@@ -165,9 +208,18 @@ if (isset($_POST['organizations'])) {
     
 <script>
     var organizationTotal = 1;
+
+    function goBack() {
+        document.getElementById('organizations').style.display = "block";
+        document.querySelector('[for="organizations"').hidden = false;
+        document.querySelector('#enter-quantities').hidden = false;
+        document.querySelector('#hidden-buttons').classList.add('hide');
+
+        document.getElementById("code-generator-fields").innerHTML = "";
+    }
     
     function generateOrganizations() {
-        var text = document.getElementById('organizations').value;
+        var text = document.getElementById('organizations').value.trim();
         var lines = text.split("\n");
         var count = lines.length;
 
@@ -175,17 +227,17 @@ if (isset($_POST['organizations'])) {
             document.getElementById('organizations').style.display = "none";
             document.querySelector('[for="organizations"').hidden = true;
             document.querySelector('#enter-quantities').hidden = true;
-            document.querySelector('#submit-button').classList.remove('hide');
+            document.querySelector('#hidden-buttons').classList.remove('hide');
 
             for (let i = 1; i < (count + 1); i++) {
                 line = lines[i - 1];
                 organization = `
-                    <span class="organization-quantities grid grid-2">
-                    <label for="organization` + i + `">Organization Name</label>
-                    <input type="text" name="organization[]" id="organization` + i + `" value="` + line + `" tabindex="-1" required>
+                    <span class="organization-quantities grid grid-2 grid-sm">
+                    <label for="organization${i}">Organization Name</label>
+                    <label for="quantity${i}">Quantity</label>
 
-                    <label for="quantity` + i + `">Quantity</label>
-                    <input type="number" name="quantity[]" id="quantity` + i + `" min="1" max="200" required>
+                    <input type="text" name="organization[]" id="organization${i}" value="` + line + `" tabindex="-1" required>
+                    <input type="number" name="quantity[]" id="quantity${i}" min="1" max="200" required>
                     </span>`
 
                 document.getElementById("code-generator-fields").innerHTML += organization;

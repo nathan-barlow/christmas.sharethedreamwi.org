@@ -22,10 +22,10 @@ get_header();
             <div class="grid donate-options">
                 <div class="floating-card">
                     <h4 class="wp-block-heading">Write a Check</h4>
-                    <p>Please make checks payable to <em>Share the Dream</em></p>
+                    <p>Please make checks payable to <b>Share the Dream</b></p>
                     <p>
                         <strong>Mail to</strong>:<br>
-                        Community Christmas<br>
+                        Share the Dream<br>
                         N250 Eastowne Lane<br>
                         Appleton, WI 54915
                     </p>

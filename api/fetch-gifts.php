@@ -1,9 +1,15 @@
 <?php
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: https://staging2.communitychristmasfoxcities.org');
 header('Cache-Control: no-cache');
 
-require('includes/db-connection.php');
+$origin = $_SERVER['HTTP_ORIGIN'];
+$allowed_domains = ['https://staging2.christmas.sharethedreamwi.org', 'https://christmas.sharethedreamwi.org'];
+if (in_array($origin, $allowed_domains)) {
+    header("Access-Control-Allow-Origin: $origin");
+}
+
+require_once('includes/db-connection.php');
+require_once('includes/log-error.php');
 
 function getGifts() {
     $conn = dbConnect('read');

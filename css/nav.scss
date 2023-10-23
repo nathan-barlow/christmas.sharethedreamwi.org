@@ -91,7 +91,7 @@ nav.nav-white {
  
 header .nav-main-drawer {
     position: absolute;
-    background-color: var(--color-background);
+    background-color: white;
     color: var(--color-main-800);
     top: 0px;
     left: 0;
@@ -103,6 +103,7 @@ header .nav-main-drawer {
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: var(--box-shadow);
     z-index: -1;
 }
 
@@ -159,6 +160,24 @@ header ul.sub-menu a {
     padding: 5px;
 }
 
+
+    
+/* style call to action in header */ header .menu > .menu-item:last-of-type a,
+header .menu > .menu-item:nth-last-of-type(2) a {
+    background-color: var(--color-main-800);
+    color: white;
+    border-radius: var(--br-small);
+    padding: 10px 16px;
+    margin: 0px;
+}
+
+header .menu > .menu-item:nth-last-of-type(2) {
+    a {
+        background-color: var(--color-gray-150);
+        color: black;
+    }
+}
+
 @media only screen and (min-width: 980px) {
     .nav-main-menu-toggle-icon {
         display: none;
@@ -206,21 +225,13 @@ header ul.sub-menu a {
             background: none;
         }
     }
-    
+
     /* style call to action in header */ header .menu > .menu-item:last-of-type a,
     header .menu > .menu-item:nth-last-of-type(2) a {
-        background-color: var(--color-main-800);
-        color: white;
-        border-radius: var(--br-small);
-        padding: 10px 16px;
         margin: 10px 0px;
     }
 
     header .menu > .menu-item:nth-last-of-type(2) {
-        a {
-            background-color: var(--color-gray-150);
-            color: black;
-        }
         margin-right: -20px;
     }
 

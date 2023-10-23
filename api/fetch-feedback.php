@@ -1,8 +1,14 @@
 <?php
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: https://staging2.communitychristmasfoxcities.org');
 
-require('includes/db-connection.php');
+$origin = $_SERVER['HTTP_ORIGIN'];
+$allowed_domains = ['https://staging2.christmas.sharethedreamwi.org', 'https://christmas.sharethedreamwi.org'];
+if (in_array($origin, $allowed_domains)) {
+    header("Access-Control-Allow-Origin: $origin");
+}
+
+require_once('includes/db-connection.php');
+require_once('includes/log-error.php');
 
 function submitFeedback() {
     $conn = dbConnect('read');
@@ -29,6 +35,7 @@ function submitFeedback() {
         return "success";
     } else {
         return "fail";
+        logError("FEEDBACK SURVEY", ("Error adding feedback to database. Satisfaction: " . $satisfaction . ". Message: " . $message));
     }
     $add_feedback->close();
     $conn->close();

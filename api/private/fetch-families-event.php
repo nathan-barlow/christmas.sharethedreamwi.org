@@ -22,7 +22,7 @@ if($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     exit;
 }
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
+if ($_SERVER["REQUEST_METHOD"] === "GET") {
     if (
         !isset($_SERVER['PHP_AUTH_USER']) ||
         !isset($_SERVER['PHP_AUTH_PW']) ||
@@ -32,21 +32,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         header('WWW-Authenticate: Basic realm="Authorization Required"');
         header('HTTP/1.0 401 Unauthorized');
 
-        logError("AUTHORIZATION", ("Failed authorization attempt on [toggle-packed.php]. Username: [" . $_SERVER['PHP_AUTH_USER'] . "] / Password: [" . $_SERVER['PHP_AUTH_PW'] . "]"));
+        logError("AUTHORIZATION", ("Failed authorization attempt on [fetch-families.php]. Username: " . $_SERVER['PHP_AUTH_USER'] . " / Password: " . $_SERVER['PHP_AUTH_PW']));
+        echo "Authorization required";
         exit;
     }
 
     // If the credentials are valid, continue with the API logic
     require('private-functions.php');
-
-    $number = $_POST['number'];
-    $pack = $_POST['pack'];
-
-    try {
-        togglePacked($number, $pack);
-    } catch (Exception $e) {
-        logError("ADMIN", ("togglePacked() function error. Number: " . htmlspecialchars($number) . ". Pack: " . htmlspecialchars($pack) . ". Error Message: '" . $e->getMessage() . "'"));
-        echo $e->getMessage();
-    }
+    echo json_encode(getFamiliesEvent());
 }
 ?>

@@ -1,0 +1,72 @@
+dialog {
+  border: none;
+  border-radius: var(--br-small);
+  -webkit-box-shadow: var(--box-shadow);
+          box-shadow: var(--box-shadow);
+  padding: 1rem;
+  min-width: 400px;
+  max-width: 600px;
+}
+dialog h2 {
+  margin-bottom: 1rem;
+  margin-top: 0.2rem;
+  font-size: 1.2rem;
+}
+dialog h3 {
+  font-size: 1rem;
+  color: black;
+}
+dialog .close-x {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  padding: 0px;
+}
+
+span.ripple {
+  position: absolute;
+  border-radius: 50%;
+  -webkit-transform: scale(0);
+          transform: scale(0);
+  -webkit-animation: ripple 600ms ease-out;
+          animation: ripple 600ms ease-out;
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+@-webkit-keyframes ripple {
+  to {
+    -webkit-transform: scale(2);
+            transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes ripple {
+  to {
+    -webkit-transform: scale(2);
+            transform: scale(2);
+    opacity: 0;
+  }
+}
+.buttons {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  gap: var(--gap-sm);
+}
+
+.button,
+.wp-block-button__link {
+  display: inline-block;
+  background-color: var(--color-main-500);
+  color: white;
+  border-radius: var(--br-small);
+  padding: 0.5rem 0.75rem;
+  margin: 10px 0px;
+  font-size: 1rem;
+  position: relative;
+  overflow: hidden;
+}

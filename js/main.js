@@ -23,7 +23,7 @@ function createRipple(event) {
     button.appendChild(circle);
 }
 
-const buttons = document.querySelectorAll("button, .button, .wp-block-button__link, .menu > .menu-item:last-of-type a, .menu > .menu-item:nth-last-of-type(2) a, .nav-secondary a, .satisfaction, .event-button");
+const buttons = document.querySelectorAll("button:not(.tooltip), .button, .wp-block-button__link, .menu > .menu-item:last-of-type a, .menu > .menu-item:nth-last-of-type(2) a, .nav-secondary a, .satisfaction, .event-button");
 for (const button of buttons) {
     button.addEventListener("mousedown", createRipple);
 }

@@ -23,6 +23,7 @@ if($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
     if (
         !isset($_SERVER['PHP_AUTH_USER']) ||
         !isset($_SERVER['PHP_AUTH_PW']) ||
@@ -40,12 +41,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     require('private-functions.php');
 
     $number = $_POST['number'];
-    $pack = $_POST['pack'];
+    $action = $_POST['action'];
 
     try {
-        togglePacked($number, $pack);
+        toggleFamily($number, $action);
     } catch (Exception $e) {
-        logError("ADMIN", ("togglePacked() function error. Number: " . htmlspecialchars($number) . ". Pack: " . htmlspecialchars($pack) . ". Error Message: '" . $e->getMessage() . "'"));
+        logError("ADMIN", ("toggleFamily() function error. Number: " . htmlspecialchars($number) . ". Action: " . htmlspecialchars($action) . ". Error Message: '" . $e->getMessage() . "'"));
         echo $e->getMessage();
     }
 }

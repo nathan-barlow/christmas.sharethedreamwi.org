@@ -1,7 +1,15 @@
 <?php
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: https://staging2.communitychristmasfoxcities.org');
 header('Cache-Control:no-cache');
+
+$origin = $_SERVER['HTTP_ORIGIN'];
+$allowed_domains = ['https://staging2.christmas.sharethedreamwi.org', 'https://christmas.sharethedreamwi.org'];
+if (in_array($origin, $allowed_domains)) {
+    header("Access-Control-Allow-Origin: $origin");
+}
+
+require_once('../includes/log-error.php');
+require_once('parse-env.php');
 
 // Handle preflight requests (OPTIONS method)
 if($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
@@ -15,22 +23,18 @@ if($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "GET") {
-    // Require Basic Authentication for the actual GET request
-    $username = 'registrationapi'; // Replace with your actual username
-    $password = 'ARpw930jkN9Lldkdn23JK'; // Replace with your actual password
 
     if (
         !isset($_SERVER['PHP_AUTH_USER']) ||
         !isset($_SERVER['PHP_AUTH_PW']) ||
         $_SERVER['PHP_AUTH_USER'] !== $username ||
-        $_SERVER['PHP_AUTH_PW'] !== $password
+        !password_verify($_SERVER['PHP_AUTH_PW'], $password)
     ) {
         header('WWW-Authenticate: Basic realm="Authorization Required"');
         header('HTTP/1.0 401 Unauthorized');
-        //echo $_SERVER['PHP_AUTH_USER'];
-        error_log('Username: ' . $_SERVER['PHP_AUTH_USER']);
-        error_log('Password: ' . $_SERVER['PHP_AUTH_PW']);
-        echo 'Authorization required';
+
+        logError("AUTHORIZATION", ("Failed authorization attempt on [fetch-families.php]. Username: " . $_SERVER['PHP_AUTH_USER'] . " / Password: " . $_SERVER['PHP_AUTH_PW']));
+        echo $username;
         exit;
     }
 

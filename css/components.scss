@@ -1,0 +1,484 @@
+// DIALOG BOX ---
+dialog {
+   border: none;
+   border-radius: var(--br-small);
+   box-shadow: var(--box-shadow);
+   padding: 1rem;
+   min-width: 400px;
+   max-width: 600px;
+
+   h2 {
+      margin-bottom: 1rem;
+      margin-top: 0.2rem;
+      font-size: 1.2rem;
+   }
+
+   h3 {
+      font-size: 1rem;
+      color: black;
+   }
+
+   .close-x {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      z-index: 2;
+      padding: 0px;
+   }
+}
+
+// BUTTONS ---
+span.ripple {
+   position: absolute;
+   border-radius: 50%;
+   transform: scale(0);
+   animation: ripple 600ms ease-out;
+   background-color: rgba(255, 255, 255, 0.4);
+}
+
+@keyframes ripple {
+   to {
+      transform: scale(2);
+      opacity: 0;
+   }
+}
+
+button:not(.tooltip, .close-x),
+.button,
+.event-button {
+   position: relative;
+   overflow: hidden;
+}
+
+.buttons {
+   display: flex;
+   flex-wrap: wrap;
+   gap: var(--gap-sm);
+   padding: 1rem 0px;
+}
+
+button {
+   border: none;
+   background-color: white;
+   cursor: pointer;
+   color: black;
+   padding: 0.5rem 0.75rem;
+   border-radius: var(--br-small);
+   margin: 0.5rem 0px;
+}
+
+.button,
+.wp-block-button__link {
+   display: inline-block;
+   background-color: var(--color-main-500);
+   color: white;
+   border-radius: var(--br-small);
+   padding: 0.5rem 0.75rem;
+   margin: 0.5rem 0px;
+   font-size: 1rem;
+   position: relative;
+   overflow: hidden;
+}
+
+.button i,
+button i {
+   display: inline-block;
+   opacity: 0.5;
+}
+
+.button-mini {
+   padding: 0.25rem 0.5rem;
+   border-radius: 6px;
+   margin: 0px;
+}
+
+.button-icon-only {
+   margin: 0;
+
+   i {
+      margin: 0px !important;
+   }
+}
+
+.button-main-100 {
+   background-color: var(--color-main-100);
+   color: black;
+}
+
+.button-main-500 {
+   background-color: var(--color-main-500);
+   color: var(--color-background);
+}
+
+.button-white {
+   background-color: white;
+   color: black;
+}
+
+.button-gray-100 {
+   background-color: var(--color-gray-100);
+   color: black;
+}
+
+.button-gray-150 {
+   background-color: var(--color-gray-150-t);
+   color: black;
+}
+
+// TOOLTIP ---
+// Creates a hover box above the tooltip icon using its data-text attribute
+.tooltip {
+   position: relative;
+
+   &::before {
+      content: attr(data-text);
+      position: absolute;
+      bottom: 120%;
+      transform: translateX(-50%);
+      width: 250px;
+      padding: 0.5rem;
+      border-radius: var(--br-small);
+      color: var(--color-dark);
+      text-align: center;
+      line-height: 1.6;
+      background-color: var(--color-gray-150-t);
+      backdrop-filter: blur(16px);
+      z-index: 101;
+      display: none;
+   }
+
+   &:hover::before {
+      display: block;
+   }
+}
+
+// ALERT ---
+.alert {
+   background-color: var(--color-main-100);
+   padding: var(--gap);
+   border-radius: var(--br-large);
+
+   h2 {
+      margin-top: auto;
+      color: var(--color-main-800);
+   }
+}
+
+// TAG ---
+.tag {
+   background-color: var(--color-gray-200);
+   color: var(--color-dark);
+   border-radius: var(--br-small);
+   padding: 0.25em 0.8em;
+   margin: 0px;
+   font-size: 0.8em;
+   display: inline-block;
+
+   &.founder {
+      background-color: var(--color-main-100);
+      color: var(--color-main-500);
+   }
+
+   &.web {
+      background-color: #cffafe;
+      color: #0e7490;
+   }
+
+   &.registration {
+      background-color: #ffedd5;
+      color: #ea580c;
+   }
+
+   &.cofounder {
+      background-color: #fef3c7;
+      color: #b45309;
+   }
+
+   &.board-member {
+      background-color: #ecfccb;
+      color: #4d7c0f;
+   }
+
+   &.event {
+      background-color: #ccfbf1;
+      color: #0f766e;
+   }
+
+   &.accountant {
+      background-color: #ede9fe;
+      color: #6b21a8;
+   }
+}
+
+// BOX LIST ---
+// ul that is styled as a flex and has backgrounds so each item is in box
+.box-list {
+   list-style: none;
+   padding: 0px;
+   display: flex;
+   flex-wrap: wrap;
+   gap: 0.5rem;
+
+   li {
+      padding: 0.5rem 1rem;
+      background-color: white;
+      border-radius: var(--br-small);
+      border: 1px solid var(--color-gray-150);
+
+      &:has(b) {
+         order: -1;
+      }
+   }
+}
+
+.box-list b,
+.filter-options strong {
+   margin-left: 0.5rem;
+   margin-right: -0.5rem;
+   padding: 0px 0.25rem;
+   background-color: var(--color-success-100);
+   border-radius: 6px;
+   border: 1px solid var(--color-success-200);
+}
+
+// MESSAGE ---
+.message {
+   margin: 1rem 0px;
+   padding: 1rem;
+   background-color: var(--color-gray-100);
+   color: var(--color-gray-500);
+   border-radius: var(--br-small);
+}
+
+.message-success {
+   background-color: var(--color-success-100);
+   color: var(--color-success-500);
+}
+
+.message-error {
+   background-color: var(--color-error-100);
+   color: var(--color-error-500);
+}
+
+.sib_msg_disp p {
+   border-radius: var(--br-small) !important;
+}
+
+// TABLE ---
+table {
+   border-collapse: collapse;
+   margin-top: 1rem;
+   border-style: hidden;
+   /* hide standard table (collapsed) border */
+   box-shadow: 0 0 0 1px var(--color-gray-200);
+   /* this draws the table border  */
+   border-radius: var(--br-small);
+   overflow: hidden;
+
+   thead {
+      font-weight: bold;
+      background-color: var(--color-gray-100);
+      top: 0;
+      position: sticky;
+   }
+
+   td {
+      padding: 0.25rem 0.5rem;
+      border: 1px solid var(--color-gray-200);
+
+      &.width-100 {
+         width: 100%;
+      }
+   }
+
+   tbody {
+      background-color: white;
+   }
+
+   &.table-padded {
+      td {
+         padding: 0.5rem 0.75rem;
+      }
+   }
+
+   &.table-editable {
+      thead label {
+         margin: 0px;
+      }
+
+      tr td:has(input[type="number"]) {
+         height: 37px;
+      }
+
+      tr td input[type="number"] {
+         margin: auto;
+         border-radius: 0px;
+         border-width: 0px;
+         position: absolute;
+         top: 0;
+         left: 0;
+      }
+
+      .on-hand {
+         position: relative;
+      }
+
+      button.button-toggle {
+         margin: 0px;
+      }
+   }
+}
+
+// CARD ---
+.floating-card {
+   box-shadow: var(--box-shadow);
+   border-radius: var(--br-large);
+   padding: var(--gap);
+   background-color: white;
+}
+
+.card-text-large {
+   margin: var(--gap) 0px;
+}
+
+.floating-card h2,
+.floating-card h3 {
+   margin: auto;
+}
+
+.floating-card h4 {
+   color: var(--color-main-800);
+   font-size: 1.2em;
+}
+
+.card-text-large h3 {
+   font-size: 3.9em;
+}
+
+.wp-block-columns {
+   margin-bottom: auto;
+}
+
+.cards {
+   list-style-type: none;
+   padding: 0px;
+   margin: 50px 0px;
+}
+
+.cards .floating-card {
+   overflow: hidden;
+   background-color: white;
+   text-align: center;
+   transition: 0.3s transform, 0.3s box-shadow;
+   padding: 0px;
+}
+
+.card-link {
+   border-bottom: none;
+   color: var(--color-text);
+   display: flex;
+   flex-direction: column;
+   height: 100%;
+}
+
+.card-figure {
+   padding: 0px;
+   margin-bottom: -3px;
+   overflow: hidden;
+}
+
+.card-figure img {
+   width: 100%;
+   height: auto;
+   transition: 0.3s transform;
+   border: 0px;
+   border-radius: 0px;
+}
+
+.card-text {
+   padding: 20px;
+   z-index: 20;
+}
+
+.cards .floating-card:hover {
+   transform: translateY(-10px);
+   box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.cards .floating-card:active {
+   transform: translateY(-10px) scale(1.05);
+}
+
+// IMAGES ---
+img {
+   border-radius: var(--br-small);
+}
+
+figure {
+   padding: var(--gap) 0px;
+}
+
+figcaption {
+   color: var(--color-gray-500);
+}
+
+// GALLERY ---
+.gallery > div {
+   row-gap: calc(var(--gap) * 1.5);
+}
+
+.gallery {
+   figure {
+      position: relative;
+      padding: 0px;
+   }
+
+   img {
+      border-radius: var(--br-small);
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+   }
+
+   h4 {
+      margin-bottom: 0px;
+   }
+
+   p:first-of-type {
+      margin-top: 0.5em;
+   }
+}
+
+// SECONDARY NAV ---
+nav.nav-secondary {
+   display: flex;
+   gap: 1em;
+   justify-content: flex-start;
+   flex-wrap: nowrap;
+   overflow-x: scroll;
+   padding: 0.5em;
+   scrollbar-width: none;
+   background-color: var(--color-gray-150-t);
+   border-radius: var(--br-small);
+   position: sticky;
+   top: var(--gap);
+   z-index: 50;
+   backdrop-filter: blur(12px);
+
+   &::-webkit-scrollbar {
+      display: none;
+   }
+
+   > a {
+      min-width: max-content;
+      padding: 0.75em;
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--br-small);
+      color: black;
+   }
+
+   .active {
+      background-color: var(--color-gray-200);
+   }
+}

@@ -1,5 +1,6 @@
 <?php
-require('../includes/db-connection.php');
+require_once('../includes/db-connection.php');
+require_once('../includes/log-error.php');
 
 function getFamilies() {
     $conn = dbConnect('read');
@@ -14,9 +15,17 @@ function getFamilies() {
             registered_families.date_registered as DATE_REGISTERED,
             registered_families.family_gift as FAMILY_GIFT,
             registered_families.packed as PACKED,
+            registered_families.attended as ATTENDED,
+            registered_families.picked_up as PICKED_UP,
+            registered_families.reservation as RESERVATION,
+            registered_families.access as ACCESS,
+            registered_families.notes as NOTES,
             registered_members.member_id as MEMBER_ID,
             registered_members.first_name as FIRST_NAME,
-            registered_members.age as AGE,
+            CASE
+                WHEN registered_members.age = 18 THEN 'adult'
+                ELSE registered_members.age
+            END as AGE,
             registered_members.gift_preference as GIFT
         FROM registered_families
         JOIN registered_members ON (registered_families.family_id = registered_members.family_id)
@@ -31,8 +40,13 @@ function getFamilies() {
         $data[$row["FAMILY_NUMBER"]]["fam_phone"] = htmlspecialchars($row["PHONE"]);
         $data[$row["FAMILY_NUMBER"]]["fam_email"] = htmlspecialchars($row["EMAIL"]);
         $data[$row["FAMILY_NUMBER"]]["fam_gift"] = htmlspecialchars($row["FAMILY_GIFT"]);
+        $data[$row["FAMILY_NUMBER"]]["fam_reservation"] = htmlspecialchars($row["RESERVATION"]);
         $data[$row["FAMILY_NUMBER"]]["packed"] = htmlspecialchars($row["PACKED"]);
-        $data[$row["FAMILY_NUMBER"]]["register_date"] = ($row["DATE_REGISTERED"]);
+        $data[$row["FAMILY_NUMBER"]]["attended"] = htmlspecialchars($row["ATTENDED"]);
+        $data[$row["FAMILY_NUMBER"]]["picked_up"] = htmlspecialchars($row["PICKED_UP"]);
+        $data[$row["FAMILY_NUMBER"]]["access"] = htmlspecialchars($row["ACCESS"]);
+        $data[$row["FAMILY_NUMBER"]]["notes"] = htmlspecialchars($row["NOTES"]);
+        $data[$row["FAMILY_NUMBER"]]["register_date"] = date("M j, Y g:ia", strtotime($row["DATE_REGISTERED"]) - 5 * 3600);
         $data[$row["FAMILY_NUMBER"]]["members"][$i] = array(
             "name"=>htmlspecialchars($row["FIRST_NAME"]),
             "age"=>htmlspecialchars($row["AGE"]),
@@ -64,7 +78,12 @@ function getFamily($number) {
             registered_families.date_registered as DATE_REGISTERED,
             registered_families.family_gift as FAMILY_GIFT,
             registered_families.packed as PACKED,
+            registered_families.attended as ATTENDED,
+            registered_families.picked_up as PICKED_UP,
+            registered_families.reservation as RESERVATION,
             registered_families.email_reminders as EMAIL_REMINDERS,
+            registered_families.access as ACCESS,
+            registered_families.notes as NOTES,
             registered_members.member_id as MEMBER_ID,
             registered_members.first_name as FIRST_NAME,
             registered_members.age as AGE,
@@ -88,9 +107,14 @@ function getFamily($number) {
             $family["fam_phone"] = htmlspecialchars($row["PHONE"]);
             $family["fam_email"] = htmlspecialchars($row["EMAIL"]);
             $family["fam_gift"] = htmlspecialchars($row["FAMILY_GIFT"]);
+            $family["fam_reservation"] = htmlspecialchars($row["RESERVATION"]);
             $family["packed"] = htmlspecialchars($row["PACKED"]);
+            $family["attended"] = htmlspecialchars($row["ATTENDED"]);
+            $family["picked_up"] = htmlspecialchars($row["PICKED_UP"]);
             $family["email_reminders"] = htmlspecialchars($row["EMAIL_REMINDERS"]);
-            $family["register_date"] = ($row["DATE_REGISTERED"]);
+            $family["register_date"] =  date("M j, Y g:ia", strtotime($row["DATE_REGISTERED"]) - 5 * 3600);
+            $family["access"] = htmlspecialchars($row["ACCESS"]);
+            $family["notes"] = htmlspecialchars($row["NOTES"]);
             $family["members"][$i] = array(
                 "name"=>htmlspecialchars($row["FIRST_NAME"]),
                 "age"=>htmlspecialchars($row["AGE"]),
@@ -109,29 +133,146 @@ function getFamily($number) {
     }
 }
 
+function getFamiliesEvent() {
+    $conn = dbConnect('read');
+
+    $query_families = mysqli_query($conn,
+        "SELECT
+            family_id as FAMILY_CODE,
+            family_name as LAST_NAME,
+            phone as PHONE,
+            email as EMAIL,
+            family_number as FAMILY_NUMBER,
+            family_gift as GIFT,
+            attended as ATTENDED,
+            picked_up as PICKED_UP,
+            reservation as RESERVATION
+        FROM registered_families
+        ORDER BY reservation, family_name");
+
+    $data = array();
+    $i = 0;
+    while($row = mysqli_fetch_array($query_families)){
+        $data[$row["FAMILY_NUMBER"]]["fam_number"] = $row["FAMILY_NUMBER"];
+        $data[$row["FAMILY_NUMBER"]]["fam_code"] = htmlspecialchars($row["FAMILY_CODE"]);
+        $data[$row["FAMILY_NUMBER"]]["fam_name"] = htmlspecialchars($row["LAST_NAME"]);
+        $data[$row["FAMILY_NUMBER"]]["fam_phone"] = htmlspecialchars($row["PHONE"]);
+        $data[$row["FAMILY_NUMBER"]]["fam_email"] = htmlspecialchars($row["EMAIL"]);
+        $data[$row["FAMILY_NUMBER"]]["fam_gift"] = htmlspecialchars($row["GIFT"]);
+        $data[$row["FAMILY_NUMBER"]]["fam_reservation"] = htmlspecialchars($row["RESERVATION"]);
+        $data[$row["FAMILY_NUMBER"]]["attended"] = htmlspecialchars($row["ATTENDED"]);
+        $data[$row["FAMILY_NUMBER"]]["picked_up"] = htmlspecialchars($row["PICKED_UP"]);
+        $i++;
+    }
+
+    $data = array_values($data);
+
+    $conn->close();
+
+    return $data;
+}
+
 // code: family number
 // packed: true if doesn't need to be packed, false if needs to be packed
 function togglePacked($number, $pack) {
     $conn = dbConnect('read');
 
+    $code_query = $conn->prepare("SELECT family_id
+        FROM registered_families
+        WHERE family_number = ?");
+
+    $code_query->bind_param("s", $number);
+    $code_query->execute();
+    $code_query->bind_result($code);    
+    $code_query->fetch();
+    $code_query->close();
+
     if($pack == '0') {
         $togglePacked = $conn->prepare("UPDATE registered_families
             SET packed = 1
             WHERE family_number = ?");
+
+        $updateMemberInv = $conn->prepare("UPDATE event_settings AS es
+            JOIN (
+                SELECT rm.gift_preference, COUNT(*) AS member_count
+                FROM registered_members AS rm
+                WHERE rm.family_id = ?
+                GROUP BY rm.gift_preference
+            ) AS member_counts ON es.value = member_counts.gift_preference
+            SET es.inventory = es.inventory - member_counts.member_count");
+
+        $updateFamilyInv = $conn->prepare("UPDATE event_settings AS es
+            JOIN registered_families AS rf ON es.value = rf.family_gift
+            SET es.inventory = es.inventory - 1
+            WHERE es.name = 'gifts_family' AND rf.family_id = ?;");
     } else {
         $togglePacked = $conn->prepare("UPDATE registered_families
             SET packed = 0
             WHERE family_number = ?");
+
+        $updateMemberInv = $conn->prepare("UPDATE event_settings AS es
+            JOIN (
+                SELECT rm.gift_preference, COUNT(*) AS member_count
+                FROM registered_members AS rm
+                WHERE rm.family_id = ?
+                GROUP BY rm.gift_preference
+            ) AS member_counts ON es.value = member_counts.gift_preference
+            SET es.inventory = es.inventory + member_counts.member_count");
+
+        $updateFamilyInv = $conn->prepare("UPDATE event_settings AS es
+            JOIN registered_families AS rf ON es.value = rf.family_gift
+            SET es.inventory = es.inventory + 1
+            WHERE es.name = 'gifts_family' AND rf.family_id = ?;");
     }
 
     $togglePacked->bind_param("s", $number);
     $togglePacked->execute();
+
+    $updateMemberInv->bind_param("s", $code);
+    $updateMemberInv->execute();
+
+    $updateFamilyInv->bind_param("s", $code);
+    $updateFamilyInv->execute();
+
     if($togglePacked->affected_rows == 1) {
-        return "true";
-    } else {
-        return $togglePacked;
+        echo "true";
     }
     $togglePacked->close();
+    $updateMemberInv->close();
+    $updateFamilyInv->close();
+    $conn->close();
+}
+
+function toggleFamily($number, $action) {
+    $conn = dbConnect('read');
+
+    if($action == 'here') {
+        $toggle_query = $conn->prepare("UPDATE registered_families
+            SET attended = CASE
+                WHEN attended IS NULL THEN NOW()
+                ELSE NULL
+            END
+            WHERE family_number = ?");
+    } else if ($action == 'left') {
+        $toggle_query = $conn->prepare("UPDATE registered_families
+            SET picked_up = CASE
+                WHEN picked_up IS NULL THEN NOW()
+                ELSE NULL
+            END
+            WHERE family_number = ?");
+    } else {
+        echo "Invalid parameters.";
+        logError("ADMIN", ("Invalid parameters on toggleFamily() function private-functions.php. ACTION = " . htmlspecialchars($action)));
+        exit;
+    }
+
+    $toggle_query->bind_param("s", $number);
+    $toggle_query->execute();
+
+    if($toggle_query->affected_rows == 1) {
+        echo "true";
+    }
+    $toggle_query->close();
     $conn->close();
 }
 
@@ -179,6 +320,9 @@ function getGifts() {
 function resetEvent() {
     $conn = dbConnect('read');
 
+    // Start a transaction
+    mysqli_begin_transaction($conn);
+
     $tables = ['deleted_families', 'registered_members', 'registered_families', 'family_id_list', 'feedback', 'language_changes'];
     $backupYear = date('Y');
 
@@ -201,8 +345,9 @@ function resetEvent() {
         $backupResult = mysqli_query($conn, $backupQuery);
 
         if (!$backupResult) {
-            return "Backup of table $table failed. " . mysqli_error($conn);;
-            exit;
+            // Rollback the transaction on failure
+            mysqli_rollback($conn);
+            return "Backup of table $table failed. " . mysqli_error($conn);
         }
 
         // Clear original table
@@ -210,13 +355,36 @@ function resetEvent() {
         $clearResult = mysqli_query($conn, $clearQuery);
 
         if (!$clearResult) {
-            return "Clearing of table $table failed. " . mysqli_error($conn);;
-            exit;
+            // Rollback the transaction on failure
+            mysqli_rollback($conn);
+            return "Clearing of table $table failed. " . mysqli_error($conn);
         }
+
+        // Restart counter
+        $resetAutoIncrementQuery = "ALTER TABLE $table AUTO_INCREMENT = 1";
+        $resetAutoIncrementResult = mysqli_query($conn, $resetAutoIncrementQuery);
+    
+        if (!$resetAutoIncrementResult) {
+            // Rollback the transaction on failure
+            mysqli_rollback($conn);
+            return "Resetting auto-increment for table $table failed. " . mysqli_error($conn);
+        }
+    }
+
+    $clearFailedAttemptsQuery = "DELETE FROM failed_attempts WHERE attempts = 0";
+    $clearFailedAttemptsResult = mysqli_query($conn, $clearFailedAttemptsQuery);
+
+    if (!$clearFailedAttemptsResult) {
+        // Rollback the transaction on failure to clear failed attempts
+        mysqli_rollback($conn);
+        return "Clearing of failed attempts failed. " . mysqli_error($conn);
     }
 
     // Enable foreign key checks
     mysqli_query($conn, "SET FOREIGN_KEY_CHECKS = 1");
+
+    // Commit the transaction if everything is successful
+    mysqli_commit($conn);
 
     $conn->close();
 

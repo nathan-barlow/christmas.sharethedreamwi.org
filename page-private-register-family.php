@@ -5,9 +5,12 @@ get_header('archive');
 <main class="registrations-dashboard wrapper">
     <nav class="nav-secondary">
         <a href="/private-registrations">Registrations Home</a>
+        <a href="/private-registered-families">Families</a>
+        <a href="/private-gifts">Gifts</a>
         <a href="/private-family-code">Family Codes</a>
         <a class="active" href="/private-register-family">Register New Family</a>
         <a href="/private-event-settings">Event Settings</a>
+        <a href="/private-event">Event</a>
     </nav>
     <h1>Register Family</h1>
     <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
@@ -22,6 +25,8 @@ get_header('archive');
             <form action="" method="post" id="register-form">
                 <div class="card" id="family-information">
                     <h2>Family Information</h2>
+
+                    <input type="hidden" name="access" id="fam-access" value="Phone">
 
                     <label for="fam-code">
                         <strong>Family Code</strong>
@@ -78,10 +83,26 @@ get_header('archive');
                             </label>
                         </span>
                     </span>
+
+                    <label class="label-fam-reservation">
+                        <strong>Reservation Time</strong>
+                        You are allowed to put in a value that is not in the list. However, the value must be in the list of available times specified in <a data-type="URL" href="/private-event-settings" target="_blank">event settings</a>.
+                        <input class="input-md" type="text" name="fam-reservation" list="fam-reservation" id="input-fam-reservation">
+                        <datalist id="fam-reservation"></datalist>
+                    </label>
+
+                    <label for="fam-notes">
+                        <strong>Notes</strong>
+                        (Admin only) add any notes about the registration. Max length 255 characters.
+                    </label>
+                    <textarea class="input-lg" id="fam-notes" name="fam-notes" maxlength="255"></textarea>
                 </div>
 
                 <div class="card registerFormAdmin-members">
                     <h2>Family Members</h2>
+                    <p style="margin-bottom: 1rem"><strong>Age and Gift:</strong> Leave BLANK for ADULTS. If editing, age will show up as 18 for all adults.</p>
+
+                    <button class="button button-gray-150" type="button" onclick="document.getElementById('all-gift-options').showModal()"><i class="bi bi-question-circle"></i>All gift options</button>
 
                     <div class="members-grid">
                         <strong>#</strong>
@@ -98,13 +119,15 @@ get_header('archive');
                         </label>
 
                         <label>
-                            <input class="age" name="members[1][age]" type="number" min="0" max="120" required autocomplete="off" aria-labelledby="label-age">
+                            <input class="age" name="members[1][age]" type="number" min="0" max="18" autocomplete="off" aria-labelledby="label-age">
                         </label>
 
                         <label>
-                            <select class="gift" required readonly name="members[1][gift]" aria-labelledby="label-gift">
+                            <input class="gift" type="text" name="members[1][gift]" list="member1_gifts" aria-labelledby="label-gift">
+                            <datalist id="member1_gifts"></datalist>
+                            <!--<select class="gift" required readonly name="members[1][gift]" aria-labelledby="label-gift">
                                 <option value="" disabled selected>Please specify age first</option>
-                            </select>
+                            </select>-->
                         </label>
                     </div>
 
@@ -119,7 +142,7 @@ get_header('archive');
                 <span id="server-errors"></span>
 
                 <div class="buttons">
-                    <button class="button-primary">
+                    <button class="button-main-500">
                         <span id="submit">Submit</span>
                     </button>
                 </div>
@@ -129,12 +152,21 @@ get_header('archive');
 </main>
 
 <dialog id="family-registered-confirmation">
+    <button class="close-x" onclick="document.getElementById('family-registered-confirmation').close()"><i class="bi bi-x-lg"></i></button>
     <h2>Family Registered</h2>
     <div id="registered-message" class="message message-success"></div>
     <div class="buttons">
         <a class="button button-gray-150" href="/private-register-family">Register Another Family</a>
-        <a class="button button-primary" href="/private-registrations">Go Home</a>
+        <a class="button button-main-500" href="/private-registered-families">Back to Families</a>
     </div>
+</dialog>
+
+<dialog id="all-gift-options">
+    <button class="close-x" onclick="document.getElementById('all-gift-options').close()"><i class="bi bi-x-lg"></i></button>
+    <h2>All gift options</h2>
+    <p>
+        If your child would like to choose a gift outside of the recommended gifts for their age group, that is perfectly acceptable. Feel free to type their request in the box.
+    </p>
 </dialog>
 
 <script type="text/javascript" src="/wp-content/themes/communitychristmasfoxcities.org/js/registration.js"></script>
@@ -149,29 +181,31 @@ get_header('archive');
         famMembers : document.getElementById('fam-members'),
         famName : document.getElementById('fam-name'),
         famEmail : document.getElementById('fam-email'),
-        famPhone : document.getElementById('fam-phone')
+        famPhone : document.getElementById('fam-phone'),
+        famReservation : document.getElementById('input-fam-reservation'),
+        famNotes : document.getElementById('fam-notes'),
+        famAccess : document.getElementById('fam-access')
     };
     var edit = false;
     var editFamilyNumber;
 
-    const memberForm = function (i) {return(`<div class="members-grid" id="member` + i + `">
-                        <strong class="family-member-number">` + i + `</strong>
+    const memberForm = function (i) {return(`<div class="members-grid" id="member${i}">
+                        <strong class="family-member-number">${i}</strong>
 
                         <label>
-                            <input class="first-name" name="members[` + i + `][name]" type="text" required autocomplete="off" minlength="2" maxlength="100" aria-labelledby="label-name">
+                            <input class="first-name" name="members[${i}][name]" type="text" required autocomplete="off" minlength="2" maxlength="100" aria-labelledby="label-name">
                         </label>
 
                         <label>
-                            <input class="age" name="members[` + i + `][age]" type="number" min="0" max="120" required autocomplete="off" aria-labelledby="label-age">
+                            <input class="age" name="members[${i}][age]" type="number" min="0" max="120" autocomplete="off" aria-labelledby="label-age">
                         </label>
 
                         <label>
-                            <select class="gift" required readonly name="members[` + i + `][gift]" aria-labelledby="label-gift">
-                                <option value="" disabled selected>Please specify age first</option>
-                            </select>
+                            <input class="gift" type="text" name="members[${i}][gift]" list="member${i}_gifts" aria-labelledby="label-gift">
+                            <datalist id="member${i}_gifts"></datalist>
                         </label>
 
-                        <button onclick="removeMember(` + i + `)" type="button" class="button-main-100"><i class="bi bi-trash"></i></button>
+                        <button onclick="removeMember(${i})" type="button" class="remove-member button-main-100 button-icon-only"><i class="bi bi-trash"></i></button>
                     </div>`)};
 
     // on load:
@@ -213,7 +247,7 @@ get_header('archive');
         let formData = new FormData();
         formData.append('fam-id', id);
 
-        let url = 'https://registration.communitychristmasfoxcities.org/private/fetch-family.php';
+        let url = 'https://registration.christmas.sharethedreamwi.org/private/fetch-family.php';
         let headers = new Headers();
         headers.set('Authorization', 'Basic ' + btoa(user + ":" + pass));
 
@@ -241,6 +275,13 @@ get_header('archive');
         famInfo.famName.value = family.fam_name;
         famInfo.famEmail.value = family.fam_email;
         famInfo.famPhone.value = family.fam_phone;
+        famInfo.famReservation.value = family.fam_reservation;
+        if (!family.access.includes("(Edited)")) {
+            famInfo.famAccess.value = "(Edited) " + family.access;
+        } else {
+            famInfo.famAccess.value = family.access;
+        }
+        famInfo.famNotes.value = family.notes;
 
         if(family.email_reminders == true) {
             document.querySelector('#email-reminders').checked = true;
@@ -309,9 +350,9 @@ get_header('archive');
             let url;
 
             if(edit) {
-                url = 'https://registration.communitychristmasfoxcities.org/fetch-edit-family.php';
+                url = 'https://registration.christmas.sharethedreamwi.org/fetch-edit-family.php';
             } else {
-                url = 'https://registration.communitychristmasfoxcities.org/fetch-form-validation.php';
+                url = 'https://registration.christmas.sharethedreamwi.org/fetch-form-validation.php';
             }
 
             let familyForm = new FormData(form);
@@ -319,39 +360,48 @@ get_header('archive');
                 familyForm.append('fam-number', editFamilyNumber);
             }
 
-            let response = fetch(url, {method:'post', body: familyForm})
-            .then(function (response) {
-                return response.text();
-            })
-            .then(function (body) {
-                if(body == "true") {
-                    message = "Family successfully registered."
-                    document.getElementById("family-registered-confirmation").showModal();
-                    document.querySelector('#registered-message').innerHTML = message;
-                } else if(body == "opt-out") {
-                    message = "Family successfully registered. Remind them to add event date to calendar because they did not subscribe to receive emails."
-                    document.getElementById("family-registered-confirmation").showModal();
-                    document.querySelector('#registered-message').innerHTML = message;
-                } else if(body == "email-error") {
-                    message = "Family successfully registered. However, there was an error adding the email to Brevo. Please add their data manually if they would like to receive emails."
-                    document.getElementById("family-registered-confirmation").showModal();
-                    document.querySelector('#registered-message').innerHTML = message;
-                } else if(body == "edit-true") {
-                    message = "Edit success!"
-                    document.getElementById("family-registered-confirmation").showModal();
-                    document.querySelector('#registered-message').innerHTML = message;
-                } else {
-                    console.log(body);
-                    errors = JSON.parse(body);
-                    document.getElementById("server-errors").innerHTML = "";
-                    document.getElementById("server-errors").innerHTML += "<div class='message message-error'><ul id='error-list'></ul></div>";
-                    for(let error in errors) {
-                        document.getElementById("error-list").innerHTML += "<li>" + errors[error] + "</li>";
-                    }
+        // Convert the FormData object to a plain JavaScript object
+        let formObject = {};
+
+        familyForm.forEach(function(value, key) {
+            formObject[key] = value;
+        });
+
+        // Now, formObject contains all the form field values as key-value pairs
+
+        let response = fetch(url, {method:'post', body: familyForm})
+        .then(function (response) {
+            return response.text();
+        })
+        .then(function (body) {
+            if(body == "true") {
+                message = "Family successfully registered."
+                document.getElementById("family-registered-confirmation").showModal();
+                document.querySelector('#registered-message').innerHTML = message;
+            } else if(body == "opt-out") {
+                message = "Family successfully registered. Remind them to add event date to calendar because they did not subscribe to receive emails."
+                document.getElementById("family-registered-confirmation").showModal();
+                document.querySelector('#registered-message').innerHTML = message;
+            } else if(body == "email-error") {
+                message = "Family successfully registered. However, there was an error adding the email to Brevo. Please add their data manually if they would like to receive emails."
+                document.getElementById("family-registered-confirmation").showModal();
+                document.querySelector('#registered-message').innerHTML = message;
+            } else if(body == "edit-true") {
+                message = "Edit success!"
+                document.getElementById("family-registered-confirmation").showModal();
+                document.querySelector('#registered-message').innerHTML = message;
+            } else {
+                console.log(body);
+                errors = JSON.parse(body);
+                document.getElementById("server-errors").innerHTML = "";
+                document.getElementById("server-errors").innerHTML += "<div class='message message-error'><ul id='error-list'></ul></div>";
+                for(let error in errors) {
+                    document.getElementById("error-list").innerHTML += "<li>" + errors[error] + "</li>";
                 }
-            });
-        }
-        }
+            }
+        });
+    }
+    }
 
 </script>
 

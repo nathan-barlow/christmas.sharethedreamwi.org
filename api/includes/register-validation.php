@@ -1,5 +1,5 @@
 <?php
-require('includes/db-connection.php');
+require_once('includes/db-connection.php');
 
 function checkCode($family_id) {
     $conn = dbConnect('read');
@@ -85,14 +85,58 @@ function addLanguage($IP, $language) {
         language = VALUES(language)
     ");
     if (!$add_language) {
-        echo "Error in SQL statement: " . $conn->error;
+        return "Error in SQL statement: " . $conn->error;
     } else {
         // Bind the parameter and execute the query
         $add_language->bind_param("ss", $IP, $language);
         $add_language->execute();
         $add_language->close();
+        return false;
     }
     $conn->close();
+}
+
+
+
+function getTimeframes($limit = true) {
+    $conn = dbConnect('read');
+
+    $query_timeframe_limit = mysqli_query($conn, "SELECT value as timeframe_limit FROM event_settings WHERE name = 'timeframe_limit'");
+    $ACTIVATE_LIMIT = mysqli_fetch_all($query_timeframe_limit)[0][0];
+
+    // If there is a limit, return limited values. Otherwise, return all possible times.
+    $query_timeframes = mysqli_query($conn, "SELECT es.value AS timeframe, COUNT(rf.reservation) AS count
+        FROM event_settings es
+        LEFT JOIN registered_families rf ON es.value = rf.reservation
+        WHERE es.name = 'timeframe'
+        GROUP BY es.value, rf.reservation");
+
+    $timeframes = array();
+    while($row = mysqli_fetch_array($query_timeframes)){
+        $timeframes[$row["timeframe"]] = $row["count"];
+    }
+
+    $conn->close();
+
+    if($limit) {
+        // Filter keys where the value is less than $ACTIVATE_LIMIT
+        $available_timeframes = array();
+        foreach ($timeframes as $key => $value) {
+            if ($value < $ACTIVATE_LIMIT) {
+                $available_timeframes[$key] = $value;
+            }
+        }
+
+        if(count($available_timeframes) == 1) {
+            // If there's only one key remaining, get the two lowest values
+            asort($timeframes); // Sort the original array by values in ascending order
+            $available_timeframes = array_slice($timeframes, 0, 2, true);
+        }
+
+        return array_keys($available_timeframes);
+    } else {
+        return array_keys($timeframes);
+    }
 }
 
 function validateRegistration($edit = false) {
@@ -104,12 +148,13 @@ function validateRegistration($edit = false) {
     $fam_name = ucfirst(trim($_POST['fam-name']));
     $fam_email = trim($_POST['fam-email']);
     $fam_phone = preg_replace("/[^0-9]/", '', trim($_POST['fam-phone']));
-    $fam_gift = trim($_POST['fam-gift']);
+    $fam_gift = $_POST['fam-gift'];
+    $fam_reservation = trim($_POST['fam-reservation']);
     $limit_members = true;
 
     $members = $_POST['members'];
 
-    foreach ($members as $member) {
+    foreach ($members as &$member) {
         $member['name'] = ucfirst(trim($member['name']));
         $member['age'] = intval($member['age']);
         $member['gift'] = trim($member['gift']);
@@ -142,6 +187,9 @@ function validateRegistration($edit = false) {
     if (strlen($fam_gift) > 255) {
         array_push($problems, "Family gift is too long. Please contact site administrator.");
     }
+    if (strlen($fam_reservation) > 255) {
+        array_push($problems, "Family reservation value is too long. Please contact site administrator.");
+    }
     if (!$fam_id || !$fam_name || !$fam_phone || !$fam_email) {
         array_push($problems, "Please fill out all fields.");
     }
@@ -156,6 +204,12 @@ function validateRegistration($edit = false) {
             array_push($problems, htmlentities($member['name']) . "'s gift preference is too long. Please contact site administrator.");
         }
     }
+    if ($fam_reservation != "" && !in_array($fam_reservation, getTimeframes(false))) {
+        array_push($problems, ("Family reservation timeframe not available."));
+    }
+    if ($fam_gift == "") {
+        array_push($problems, "No family gift selected.");
+    }
     return $problems;
 }
 
@@ -168,6 +222,9 @@ function insertFamily() {
     $fam_email = trim($_POST['fam-email']);
     $fam_phone = preg_replace("/[^0-9]/", '', trim($_POST['fam-phone']));
     $fam_gift = $_POST['fam-gift'];
+    $fam_reservation = $_POST['fam-reservation'];
+    $fam_access = $_POST['access'];
+    $fam_notes = trim($_POST['fam-notes']);
 
     if($_POST['email-reminders']) {
         $email_reminders = 1;
@@ -175,27 +232,37 @@ function insertFamily() {
         $email_reminders = 0;
     }
 
-    $members = $_POST['members'];
+    $submitted_members = $_POST['members'];
+    $members = [];
 
-    foreach ($members as $member) {
-        $member['name'] = ucfirst(trim($member['name']));
-        $member['age'] = intval($member['age']);
-        $member['gift'] = trim($member['gift']);
+    foreach ($submitted_members as $member) {
+        $new_array = [];
+
+        if($member['age'] === "") {
+            $new_array['age'] = '18';
+        } else {
+            $new_array['age'] = intval($member['age']);
+        }
+
+        $new_array['name'] = ucfirst(trim($member['name']));
+        $new_array['gift'] = trim($member['gift']);
+
+        array_push($members, $new_array);
     }
 
     // If there are no problems, add family to database
     if($fam_number) {
         $add_family = $conn->prepare("INSERT INTO registered_families 
-        (family_number, family_id, phone, email, family_name, family_gift, email_reminders)
-        VALUES (?, ?, ?, ?, ?, ?, ?)");
+        (family_number, family_id, phone, email, family_name, family_gift, email_reminders, reservation, access, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-        $add_family->bind_param("isssssi", $fam_number, $fam_id, $fam_phone, $fam_email, $fam_name, $fam_gift, $email_reminders);
+        $add_family->bind_param("isssssisss", $fam_number, $fam_id, $fam_phone, $fam_email, $fam_name, $fam_gift, $email_reminders, $fam_reservation, $fam_access, $fam_notes);
     } else {
         $add_family = $conn->prepare("INSERT INTO registered_families 
-        (family_id, phone, email, family_name, family_gift, email_reminders)
-        VALUES (?, ?, ?, ?, ?, ?)");
+        (family_id, phone, email, family_name, family_gift, email_reminders, reservation, access, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-        $add_family->bind_param("sssssi", $fam_id, $fam_phone, $fam_email, $fam_name, $fam_gift, $email_reminders);
+        $add_family->bind_param("sssssisss", $fam_id, $fam_phone, $fam_email, $fam_name, $fam_gift, $email_reminders, $fam_reservation, $fam_access, $fam_notes);
     }
 
     $add_family->execute();
@@ -211,6 +278,7 @@ function insertFamily() {
         $mem_name = $member['name'];
         $mem_age = $member['age'];
         $mem_gift = $member['gift'];
+        
         $add_member->execute();
     }
 
@@ -274,6 +342,7 @@ function registerEmail() {
     $members = $_POST['members'];
     $first_name = ucfirst(trim($members[1]['name']));
     $total_members = count($members);
+    $reservation = $_POST['fam-reservation'];
 
     $data = '{"email": "' . $fam_email . '", 
         "listIds" : [11],
@@ -281,7 +350,8 @@ function registerEmail() {
             "FIRSTNAME" : "' . $first_name . '", 
             "LASTNAME" : "' . $fam_name . '", 
             "FAMILYCODE" : "' . $fam_id . '", 
-            "FAMILYMEMBERS" : "'. $total_members . '"}}';
+            "FAMILYMEMBERS" : "'. $total_members . '", 
+            "RESERVATIONTIME" : "'. $reservation . '"}}';
 
 
     if($email_opt && $fam_email) {

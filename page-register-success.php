@@ -14,6 +14,7 @@ get_header('archive');
         <form action="#" method="post" id="satisfaction-survey" class="satisfaction-survey">
             <div id="survey-1">
                 <h2>How was your registration experience?</h2>
+                <p>This is a completely anonymous survey. The responses you submit are not associated with your registration.</p>
                 <div class="satisfaction-container grid grid-3">
                     <label>
                         <input class="alt-check" type="radio" name="satisfaction" value="good" aria-label="good" title="Good">
@@ -39,16 +40,16 @@ get_header('archive');
             </div>
 
             <div id="survey-2">
-                <label for="message">Leave a comment? (optional)</label>
-                <textarea name="message" id="message" cols="30" rows="10"></textarea>
-                <button class="button-primary" type="submit">
-                    Submit
-                </button>
+                <label for="message"><strong>Leave a comment? (optional)</strong></label>
+                <p>Please let us know if you had any issues registering or have any ideas for the event. We love hearing from you!</p>
+                <textarea name="message" id="message" cols="30" rows="10" maxlength="1000"></textarea>
             </div>
 
-            <span id="satisfaction-errors"></span>
+            <button class="button-main-500" type="submit" id="submit-button">
+                Submit
+            </button>
 
-            <p>This is a completely anonymous survey. The responses you submit are not associated with your registration.</p>
+            <span id="satisfaction-errors"></span>
         </form>
     </section>
     <?php endwhile; else: endif; ?>
@@ -60,6 +61,16 @@ get_header('archive');
     var url = new URL(
         window.location.href
     );
+
+    window.addEventListener("beforeunload", function(e){
+        const satisfactionSelected = !!document.querySelector('input[name="satisfaction"]:checked');
+
+        if(satisfactionSelected) {
+            event.preventDefault();
+            event.returnValue = "All fields except satisfaction are optional. Please submit form to let us know how we did."
+            document.getElementById("submit-button").scrollIntoView();
+        }
+    });
 
     const container = document.getElementById('success-container');
     if(url.search == "?email-error") {
@@ -73,16 +84,18 @@ get_header('archive');
         document.querySelector("p").innerText += " You will receive an email confirmation shortly.";
     }
 
-    if(localStorage.getItem('feedback') == "true") {
+    if(localStorage.getItem('std-feedback-2023') == "true") {
         form.remove();
     }
 
     function fetchSubmitFeedback(event) {
-        event.preventDefault();
+        if(event) {
+            event.preventDefault();
+        }
         
-        let url = 'https://registration.communitychristmasfoxcities.org/fetch-feedback.php';
+        let url = 'https://registration.christmas.sharethedreamwi.org/fetch-feedback.php';
 
-        let response = fetch(url, {method:'post', body: new FormData(form)})
+        let response = fetch(url, {method:'post', body: new FormData(form), keepalive:'true'})
         .then(function (response) {
             return response.text();
         })
@@ -95,7 +108,7 @@ get_header('archive');
                 document.getElementById("satisfaction-errors").innerHTML = message;
             } else if(body == "success") {
                 form.remove();
-                localStorage.setItem('feedback', 'true');
+                localStorage.setItem('std-feedback-2023', 'true');
                 let message = "<div class='message message-success'>Your response has been submitted. Thank you for helping us provide a great registration experience!</div>";
                 document.getElementById("success-container").insertAdjacentHTML("beforeend", message);
             } else {

@@ -1,0 +1,128 @@
+.bg-gray100 {
+   background-color: var(--color-gray-100) !important;
+   border-color: var(--color-gray-200) !important;
+}
+
+.bg-error100 {
+   background-color: var(--color-error-100) !important;
+   border-color: var(--color-error-200) !important;
+}
+
+.bg-warning100 {
+   background-color: var(--color-warning-100) !important;
+   border-color: var(--color-warning-200) !important;
+}
+
+.bg-success100 {
+   background-color: var(--color-success-100) !important;
+   border-color: var(--color-success-200) !important;
+}
+
+.center {
+   text-align: center;
+}
+
+.left {
+   text-align: left;
+}
+
+.right {
+   text-align: right;
+}
+
+.hidden,
+.hide {
+   display: none !important;
+}
+
+.float-right {
+   float: right;
+}
+
+.flex {
+   display: flex;
+   gap: var(--gap);
+
+   &.flex-sm {
+      gap: var(--gap-sm);
+   }
+
+   &.flex-xs {
+      gap: 0.5rem;
+   }
+
+   &.flex-center {
+      align-items: center;
+   }
+
+   &.flex-bottom {
+      align-items: baseline;
+   }
+
+   &.flex-wrap {
+      flex-wrap: wrap;
+   }
+}
+
+.grid,
+.wp-grid > div {
+   display: grid;
+   grid-gap: var(--gap);
+
+   &.grid-sm {
+      gap: var(--gap-sm);
+   }
+
+   &.grid-xs {
+      gap: 0.5rem;
+   }
+
+   &.grid-center {
+      align-items: center;
+   }
+}
+
+.grid-2,
+.wp-grid-2 > div {
+   grid-template-columns: 1fr;
+}
+
+.grid-3,
+.wp-grid-3 > div {
+   grid-template-columns: 1fr;
+}
+
+.grid-4,
+.wp-grid-4 > div {
+   grid-template-columns: 1fr 1fr;
+}
+
+.grid-4-sm {
+   grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+
+.margin-0 {
+   margin: 0px;
+}
+
+.opacity-0 {
+   opacity: 0;
+}
+
+.justify-right {
+   justify-content: flex-end;
+}
+
+// for textareas
+.vertical-resize {
+   resize: vertical;
+   min-height: 200px;
+   max-width: 100%;
+}
+
+// overflow will scroll for large container
+.container-max-height {
+   margin-top: 1rem;
+   max-height: 900px;
+   overflow-y: auto;
+}
