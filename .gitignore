@@ -3,3 +3,5 @@
 
 # Ignore private configuration files
 js/private.js
+api/includes/db-connection.php
+template-parts/db-connection.php
