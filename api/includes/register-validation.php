@@ -1,5 +1,6 @@
 <?php
 require_once('includes/db-connection.php');
+require_once('private/parse-env.php');
 
 function checkCode($family_id) {
     $conn = dbConnect('read');
@@ -356,7 +357,7 @@ function registerEmail() {
 
     if($email_opt && $fam_email) {
         $ch = curl_init();
-        $api_key = "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";
+        $api_key = $brevo_api;
 
         curl_setopt($ch, CURLOPT_URL, 'https://api.brevo.com/v3/contacts');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
