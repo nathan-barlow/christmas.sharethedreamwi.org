@@ -1,6 +1,7 @@
 <?php
 require_once('includes/db-connection.php');
 require_once('private/parse-env.php');
+require_once('includes/log-error.php');
 
 function checkCode($family_id) {
     $conn = dbConnect('read');
@@ -356,6 +357,7 @@ function registerEmail() {
 
 
     if($email_opt && $fam_email) {
+        global $brevo_api;
         $ch = curl_init();
         $api_key = $brevo_api;
 
@@ -371,7 +373,7 @@ function registerEmail() {
 
         $result = curl_exec($ch);
         if (curl_errno($ch)) {
-            $email_problem = 'Error:' . curl_error($ch);
+            $email_problem = 'Error:' . curl_error($ch) . " | API KEY: " . $brevo_api;
         } else if(!strpos($result, "id")) {
             $email_problem = $result;
         }

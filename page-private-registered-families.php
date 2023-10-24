@@ -627,6 +627,11 @@ get_header('archive');
                 </div>
 
                 <div class="buttons">
+                    <span class="family-gift button button-gray-150" data-gift="${family['fam_gift']}">${family['fam_gift']}</span>
+                    <span class="family-reservation button button-gray-150" data-time="${family['fam_reservation']}">
+                        ${family['fam_reservation']}
+                    </span>
+
                     <button class="family-members button-gray-100 flex flex-xs flex-center flex-wrap" onclick="toggleTable(${family['fam_number']})">
                         <i class="bi bi-people"></i>
                         <p>
@@ -635,7 +640,6 @@ get_header('archive');
                             <i class="bi bi-chevron-down"></i>
                         </p>
                     </button>
-                    <span class="family-gift button button-gray-150" data-gift="${family['fam_gift']}">${family['fam_gift']}</span>
                 </div>
 
                 <span class="all-info">

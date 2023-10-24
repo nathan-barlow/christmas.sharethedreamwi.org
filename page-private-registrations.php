@@ -230,7 +230,7 @@ get_header('archive');
                 <?php foreach($organization_info as $org) : ?>
 
                 <div class="card-organization">
-                    <p><?php echo $org['organization'] ?></p>
+                    <p><?php echo htmlspecialchars(stripslashes($org['organization'])) ?></p>
                     <div data-current="<?php echo $org['registered'] ?>" data-goal="<?php echo $org['total'] ?>" class="progress-bar"></div>
                 </div>
 

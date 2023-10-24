@@ -994,6 +994,7 @@ dialog {
       .button,
       button {
          margin-top: 0px;
+         margin-bottom: 0px;
       }
 
       .registration-filters {
@@ -1179,7 +1180,7 @@ dialog {
 
       .buttons {
          gap: 0.5rem;
-         margin-top: 0.5rem;
+         padding-bottom: 0px;
       }
 
       .family-gift {
@@ -1189,7 +1190,9 @@ dialog {
 
          &::before {
             font-family: "Bootstrap-icons";
-            margin-right: 0.4rem;
+            margin-right: 0.5rem;
+            content: "\F3EC";
+            opacity: 0.5;
          }
 
          &[data-gift="Game"] {
@@ -1206,6 +1209,19 @@ dialog {
             &::before {
                content: "\F503";
             }
+         }
+      }
+
+      .family-reservation {
+         margin-bottom: 0;
+         display: flex;
+         align-items: center;
+
+         &::before {
+            font-family: "Bootstrap-icons";
+            margin-right: 0.5rem;
+            content: "\F293";
+            opacity: 0.5;
          }
       }
 
