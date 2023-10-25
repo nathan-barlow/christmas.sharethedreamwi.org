@@ -143,7 +143,7 @@ get_header('archive');
                         
                         <label>
                             <strong data-en="First Name" data-sp="Primer Nombre" data-hm="Koj lub npe">First Name</strong>
-                            <input class="input-lg first-name" name="members[1][name]" type="text" required autocomplete="off" minlength="2" maxlength="100">
+                            <input class="input-lg first-name" name="members[1][name]" type="text" required autocomplete="off" minlength="2" maxlength="100" placeholder="John">
                         </label>
 
                         <div class="age-category flex flex-sm flex-wrap">
@@ -243,7 +243,7 @@ get_header('archive');
 
                         <label>
                             <strong data-en="First Name" data-sp="Primer Nombre" data-hm="Ib Npawg">First Name</strong>
-                            <input class="input-lg first-name" name="members[` + i + `][name]" type="text" required autocomplete="off" minlength="2" maxlength="100">
+                            <input class="input-lg first-name" name="members[` + i + `][name]" type="text" required autocomplete="off" minlength="2" maxlength="100" placeholder="John">
                         </label>
 
                         <div class="age-category flex flex-sm flex-wrap">
