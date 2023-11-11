@@ -17,14 +17,14 @@ get_header();
         if($event_date && $event_time) :?>
         <section class="grid grid-3">
             <div class="event-info">
-                <div class="event event-date">
+                <div class="info-block event event-date">
                     <i class="bi bi-calendar2-event-fill"></i>
                     <span>
                         <strong><?php echo $event_date ?></strong>
                         <span id="event-time"><?php echo $event_time ?></span>
                     </span>
                 </div>
-                <a class="event-button event event-location" href="https://www.google.com/maps/place/Holy+Spirit+Catholic+School/@44.2440713,-88.3302202,181m/data=!3m1!1e3!4m6!3m5!1s0x8803baa93be7c6bb:0xbebcb01ac38f0be1!8m2!3d44.2440876!4d-88.3297398!16s%2Fg%2F1td5gps0?entry=ttu" target="_blank">
+                <a class="info-block event-button event event-location" href="https://www.google.com/maps/place/Holy+Spirit+Catholic+School/@44.2440713,-88.3302202,181m/data=!3m1!1e3!4m6!3m5!1s0x8803baa93be7c6bb:0xbebcb01ac38f0be1!8m2!3d44.2440876!4d-88.3297398!16s%2Fg%2F1td5gps0?entry=ttu" target="_blank">
                     <i class="bi bi-geo-alt-fill"></i>
                     <span>
                         <strong>Holy Spirit Catholic School</strong>

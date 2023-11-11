@@ -289,7 +289,11 @@ get_header('archive');
                 </div>
             </div>
 
-            <div id="family-member-cards" class="family-member-cards grid grid-2"></div>
+            <div id="family-member-cards" class="family-member-cards grid grid-2">
+                <div class="message">
+                    Loading families...
+                </div>
+            </div>
 
             <dialog id="delete-confirmation">
                 <h2>Delete <span id="lastname"></span> family</h2>
@@ -524,8 +528,6 @@ get_header('archive');
     }
 
     (function fetchFamilies() {
-        document.getElementById("family-member-cards").innerHTML = "";
-
         let url = 'https://registration.christmas.sharethedreamwi.org/private/fetch-families.php/';
 
         let headers = new Headers();
@@ -537,13 +539,15 @@ get_header('archive');
             })
             .then(function (body) {
                 if(body == "Authorization required") {
-                    document.getElementById("family-member-cards").innerHTML += "<div class='message message-error'>Authorization failed</div>";
+                    document.getElementById("family-member-cards").innerHTML = "<div class='message message-error'>Authorization failed</div>";
                 } else {
                     allFamilies = JSON.parse(body);
 
                     if(allFamilies.length == 0) {
-                        document.getElementById("family-member-cards").innerHTML += "<div class='message message-error'>No Registered Families</div>";
+                        document.getElementById("family-member-cards").innerHTML = "<div class='message message-error'>No Registered Families</div>";
                     } else {
+                        document.getElementById("family-member-cards").innerHTML = "";
+
                         let i = 0;
                         for(family in allFamilies) {
                             createCard(allFamilies[family], i, allFamilies.length);
@@ -590,6 +594,29 @@ get_header('archive');
             s = 's';
         }
 
+        let adults = 0;
+        let children = 0;
+
+        for (let person of family.members) {
+            if (person.age === "adult") {
+                adults++;
+            } else {
+                children ++;
+            }
+        }
+
+        if (adults == 1) {
+            adults = adults + " adult";
+        } else {
+            adults = adults + " adults";
+        }
+
+        if (children == 1) {
+            children = children + " child";
+        } else {
+            children = children + " children";
+        }
+
         let newCard = `
             <div class='family-card' id="family-${family['fam_number']}" data-packed="${family['packed']}" data-printed="false" data-note="${family['notes']}">
                 <div class="options-container">
@@ -626,11 +653,15 @@ get_header('archive');
                     <p class="fam-code">${family['fam_code']}</p>
                 </div>
 
+                <span class="family-reservation margin-top-sm" data-time="${family['fam_reservation']}">
+                    ${family['fam_reservation']}
+                </span>
+
                 <div class="buttons">
                     <span class="family-gift button button-gray-150" data-gift="${family['fam_gift']}">${family['fam_gift']}</span>
-                    <span class="family-reservation button button-gray-150" data-time="${family['fam_reservation']}">
-                        ${family['fam_reservation']}
-                    </span>
+
+                    <span id="children" class="hide button button-gray-100">${children}</span>
+                    <span id="adults" class="hide button button-gray-100">${adults}</span>
 
                     <button class="family-members button-gray-100 flex flex-xs flex-center flex-wrap" onclick="toggleTable(${family['fam_number']})">
                         <i class="bi bi-people"></i>
@@ -666,6 +697,16 @@ get_header('archive');
                     <i title="This family has a note" class="bi bi-chat-text"></i>
                     <i title="This label has been printed" class='bi bi-printer-fill'></i>
                 </span>
+
+                <div id="print-info">
+                    <p>Make sure you visit each station before you leave. Volunteers will be at every station to check off.</p>
+                    
+                    <div class="grid grid-sm grid-3">
+                        <div class="button button-gray-100 flex flex-column flex-center">
+                            Family Game
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
 

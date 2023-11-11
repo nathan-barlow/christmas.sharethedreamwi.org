@@ -56,7 +56,7 @@ if ( ! function_exists( 'cc_after_setup_theme' ) ) :
           function cc_enqueue_styles() {
 
             // wp_enqueue_style( Handle     , Path to File                           , Dependencies ['handle'] , Version Number                , CSS Media Type )
-              wp_enqueue_style('cc-style', get_template_directory_uri() . '/style.css', []                      , wp_get_theme()->get('Version'), 'all');
+              wp_enqueue_style('cc-style', get_template_directory_uri() . '/style.css', [], wp_get_theme()->get('Version'), 'all');
 
           }
           add_action('wp_enqueue_scripts', 'cc_enqueue_styles');

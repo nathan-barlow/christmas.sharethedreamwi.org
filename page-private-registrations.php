@@ -72,7 +72,20 @@ while($row = mysqli_fetch_array($query_members)){
 }
 
 // SATISFACTION QUERY
-$query_feedback_satisfaction = mysqli_query($conn, "SELECT satisfaction, COUNT(*) AS count FROM feedback GROUP BY satisfaction;");
+$query_feedback_satisfaction = mysqli_query($conn, "SELECT s.satisfaction, COALESCE(f.count, 0) AS count
+FROM (
+    SELECT 'good' AS satisfaction
+    UNION ALL
+    SELECT 'neutral'
+    UNION ALL
+    SELECT 'bad'
+) AS s
+LEFT JOIN (
+    SELECT satisfaction, COUNT(*) AS count
+    FROM feedback
+    WHERE satisfaction IN ('good', 'neutral', 'bad')
+    GROUP BY satisfaction
+) AS f ON s.satisfaction = f.satisfaction;");
 
 $satisfaction = [];
 while ($row = mysqli_fetch_assoc($query_feedback_satisfaction)) {
@@ -80,11 +93,11 @@ while ($row = mysqli_fetch_assoc($query_feedback_satisfaction)) {
 }
 
 // FEEDBACK MESSAGES QUERY
-$query_feedback_messages = mysqli_query($conn, "SELECT message FROM feedback WHERE message != '' ORDER BY timestamp DESC;");
+$query_feedback_messages = mysqli_query($conn, "SELECT message FROM feedback WHERE message != '' ORDER BY LENGTH(message);");
 $feedback_messages = mysqli_fetch_all($query_feedback_messages);
 
 // LANGUAGE CHANGES QUERY
-$query_language_changes = mysqli_query($conn, "SELECT language, COUNT(*) AS count FROM language_changes WHERE language != 'english' GROUP BY language;");
+$query_language_changes = mysqli_query($conn, "SELECT language, COUNT(*) AS count FROM language_changes GROUP BY language;");
 
 $language_changes = [];
 while ($row = mysqli_fetch_assoc($query_language_changes)) {
@@ -174,9 +187,10 @@ get_header('archive');
         <a href="/private-event-settings">Event Settings</a>
         <a href="/private-event">Event</a>
     </nav>
+    <button class="button-gray-150 float-right margin-top" onclick="window.print()"><i class="bi bi-download"></i>Download PDF</button>
     <h1>Registrations Home</h1>
-    <div class="grid">
-        <div class="grid grid-2">
+    <div class="grid" id="main-container">
+        <div class="grid grid-2" id="container-1">
             <div class="grid grid-2">
                 <div class="card totals-section">
                     <p>Families <i class="bi bi-house"></i></p>
@@ -238,33 +252,37 @@ get_header('archive');
             </div>
         </div>
         
-        <div class="grid grid-4">
-            <div class="card totals-section">
-                <p>Form Satisfaction</p>
-                <canvas id="satisfactionGraph" width="100%"></canvas>
+        <div class="grid" id="container-2">
+            <div class="grid grid-2">
+                <div class="grid grid-2">
+                    <div class="card totals-section">
+                        <p>Form Satisfaction</p>
+                        <canvas id="satisfactionGraph" width="100%"></canvas>
+                    </div>
+                    <div class="card totals-section">
+                        <p>Language</p>
+                        <canvas id="languageGraph" height="134px" width="100%"></canvas>
+                    </div>
+                </div>
+                <div class="card totals-section">
+                    <p>Reservation Times</p>
+                    <canvas id="reservationsGraph" width="100%"></canvas>
+                </div>
             </div>
-            <div class="card totals-section">
-                <p>Language Changes</p>
-                <canvas id="languageGraph" width="100%"></canvas>
-            </div>
-            <div class="card span-2 totals-section">
-                <p>Reservation Times</p>
-                <canvas id="reservationsGraph" width="100%"></canvas>
-            </div>
-        </div>
-        
-        <div class="grid grid-2">
-            <div class="card totals-section">
-                <p>Date Registered</p>
-                <canvas id="dateGraph" width="100%"></canvas>
-            </div>
-            <div class="card totals-section">
-                <p>Source</p>
-                <canvas id="sourceGraph" width="100%"></canvas>
+            
+            <div class="grid grid-2">
+                <div class="card totals-section">
+                    <p>Date Registered</p>
+                    <canvas id="dateGraph" width="100%"></canvas>
+                </div>
+                <div class="card totals-section">
+                    <p>Source</p>
+                    <canvas id="sourceGraph" width="100%"></canvas>
+                </div>
             </div>
         </div>
 
-        <div class="card">
+        <div class="card" id="family-notes">
             <h2>Family Notes</h2>
             <p>This includes any and all family notes made by registration admin.</p>
 
@@ -290,20 +308,21 @@ get_header('archive');
             </table>
         </div>
 
-        <div class="card">
+        <div class="card" id="feedback-messages">
             <h2>Feedback Messages</h2>
-            <p>This includes all messages from the feedback survey filled out at the end of registration.</p>
 
-            <?php foreach($feedback_messages as $msg) : ?>
+            <div class="messages">
+                <?php foreach($feedback_messages as $msg) : ?>
 
-            <div class="message card-message">
-                <p><?php echo htmlspecialchars($msg[0]) ?></p>
+                <div class="card-message card-message-inline">
+                    <p><?php echo htmlspecialchars($msg[0]) ?></p>
+                </div>
+
+                <?php endforeach; ?>
             </div>
-
-            <?php endforeach; ?>
         </div>
 
-        <div class="card">
+        <div class="card" id="error-log">
             <h2>Error Log</h2>
             <p>This includes all error messages generated in the application. Admin uses this to squash bugs.</p>
 
@@ -320,7 +339,7 @@ get_header('archive');
             <?php endforeach; ?>
         </div>
 
-        <div class="card">
+        <div class="card" id="blocked-ip">
             <h2>Blocked IPs</h2>
             <p>If a user makes too many failed attempts to register their invite code, their IP address will appear below. This is to protect against bots and people who don't actually have an invite. Please contact site administrator to help unblock them if they call, have a valid code, and are a human.</p>
 
@@ -399,13 +418,17 @@ get_header('archive');
         const progressBar = organization.querySelector(".progress-bar")
         const progressCurrent = parseInt(progressBar.dataset.current);
         const progressGoal = parseInt(progressBar.dataset.goal);
-        
-        if (progressCurrent <= (progressGoal * .9)) {
+
+
             progressBar.innerHTML += ("<p class='goal'>" + progressGoal + "</p>");
-        }
-        if (progressCurrent >= (progressGoal) * .03) {
             progressBar.querySelector(".progress").innerHTML += ("<p class='current'>" + progressCurrent + "</p>");
-        }
+        
+        // if (progressCurrent <= (progressGoal * .9)) {
+        //     progressBar.innerHTML += ("<p class='goal'>" + progressGoal + "</p>");
+        // }
+        // if (progressCurrent >= (progressGoal) * .1) {
+        //     progressBar.querySelector(".progress").innerHTML += ("<p class='current'>" + progressCurrent + "</p>");
+        // }
     }
 
     const familyMakeup = <?php echo json_encode($family_makeup_info[0]) ?>;
@@ -462,9 +485,9 @@ get_header('archive');
             label: "Satisfaction",
             data: Object.values(satisfaction),
             backgroundColor: [
-                '#fecaca',
                 '#bbf7cd',
-                '#fef08a'
+                '#fef08a',
+                '#fecaca'
             ],
             hoverOffset: 5,
             cutout: '0%',
@@ -564,7 +587,11 @@ get_header('archive');
             backgroundColor: [
                 '#f87171',
             ],
+            fill: true,
+            backgroundColor: '#fecaca',
             borderColor: '#f87171',
+            pointRadius: 1,
+            borderWidth: 2,
         }]
     };
     const config_timestamps = {
