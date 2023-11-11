@@ -67,9 +67,9 @@
                     Left<strong class="bg-success100">0</strong>
                 </button>
             </div>
-        </div>
 
-        <a id="recent-action" class="button button-gray-150 hidden" href=""></a>
+            <a id="recent-action" class="button button-gray-150 hidden" href=""></a>
+        </div>
 
         <div class="table-families-container">
             <table class="table-families table-editable">

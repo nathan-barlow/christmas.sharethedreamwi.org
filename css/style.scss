@@ -958,7 +958,7 @@ dialog {
          }
 
          &.active {
-            background-color: var(--color-main-100);
+            background-color: var(--color-gray-150);
          }
       }
    }
@@ -982,6 +982,10 @@ dialog {
 
       .registration-filters {
          margin-bottom: var(--gap-sm);
+         position: sticky;
+         top: calc(58px + var(--gap));
+         background-color: var(--color-gray-100);
+         z-index: 2;
       }
 
       .table-families-container {
@@ -1019,6 +1023,16 @@ dialog {
          }
       }
 
+      .family-card:has([data-gift=""]),
+      .family-card:has([data-time=""]) {
+         //background-color: var(--color-error-100) !important;
+         border-color: var(--color-error-500);
+         &::before {
+            content: "There's something wrong with this registration. Family gift or reservation time is missing.";
+            color: var(--color-error-500);
+         }
+      }
+
       .family-card,
       .family-row {
          border-radius: var(--br-small);
@@ -1027,7 +1041,7 @@ dialog {
          border: 1px solid var(--color-gray-300);
          transition: transform 300ms cubic-bezier(0.8, 0, 0.2, 1);
          position: relative;
-         scroll-margin-top: calc(var(--gap) * 2);
+         scroll-margin-top: 8.4rem;
 
          .message {
             margin-bottom: 0px;
@@ -1648,7 +1662,12 @@ dialog {
       }
 
       .registrations {
+         margin-top: 0px;
          float: none;
+
+         & * {
+            font-size: 11pt !important;
+         }
 
          &.card {
             background: none;
@@ -1666,12 +1685,13 @@ dialog {
             box-shadow: none;
             border: none;
             background: none !important;
+            padding: 5mm 0px 0px;
          }
 
          #print-info {
             > p {
                text-align: center;
-               margin: 1rem 0px;
+               margin: 2rem 0px 1rem;
             }
 
             svg {
@@ -1696,6 +1716,10 @@ dialog {
             flex-direction: column;
             align-items: center;
             gap: 8pt;
+
+            .fam-name {
+               font-size: 20pt !important;
+            }
          }
 
          .family-reservation {
@@ -1708,7 +1732,7 @@ dialog {
          }
 
          .fam-number {
-            font-size: 48pt;
+            font-size: 36pt !important;
             padding: 0px 64px !important;
             background-color: var(--color-main-100) !important;
             color: var(--color-main-800) !important;
