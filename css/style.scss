@@ -1637,7 +1637,7 @@ dialog {
          display: none !important;
       }
 
-      .grid:not(span.page-break) {
+      .grid:not(span.page-break, #print-info .grid) {
          display: block;
       }
 
@@ -1668,6 +1668,22 @@ dialog {
             background: none !important;
          }
 
+         #print-info {
+            > p {
+               text-align: center;
+               margin: 1rem 0px;
+            }
+
+            svg {
+               height: 30px;
+               width: 30px;
+            }
+
+            .flex {
+               text-align: center;
+            }
+         }
+
          .page-break {
             break-after: page;
 
@@ -1683,11 +1699,12 @@ dialog {
          }
 
          .family-reservation {
-            text-align: center;
+            justify-content: center;
          }
 
          .buttons {
             align-items: center;
+            justify-content: center;
          }
 
          .fam-number {
