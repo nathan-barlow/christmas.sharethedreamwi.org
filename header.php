@@ -25,6 +25,14 @@
         gtag('event', 'conversion', {'send_to': 'AW-11348359547/nFU8COPjp-UYEPvyqKMq'});
     </script>
 
+    <script type="application/ld+json">
+        {
+        "@context" : "https://sharethedreamwi.org",
+        "@type" : "WebSite",
+        "name" : "Share the Dream of Christmas",
+        "url" : "https://christmas.sharethedreamwi.org/"
+        }
+    </script>
 
     <?php wp_head(); ?>
 </head>
