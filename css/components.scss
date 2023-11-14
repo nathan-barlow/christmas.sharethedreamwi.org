@@ -132,6 +132,10 @@ button i {
 .tooltip {
    position: relative;
 
+   &:not([data-text=""]) {
+      display: inline-block !important;
+   }
+
    &::before {
       content: attr(data-text);
       position: absolute;

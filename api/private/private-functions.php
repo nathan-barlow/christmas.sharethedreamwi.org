@@ -146,9 +146,10 @@ function getFamiliesEvent() {
             family_gift as GIFT,
             attended as ATTENDED,
             picked_up as PICKED_UP,
-            reservation as RESERVATION
+            reservation as RESERVATION,
+            notes as NOTES
         FROM registered_families
-        ORDER BY reservation, family_name");
+        ORDER BY picked_up, attended, reservation, family_name");
 
     $data = array();
     $i = 0;
@@ -162,6 +163,7 @@ function getFamiliesEvent() {
         $data[$row["FAMILY_NUMBER"]]["fam_reservation"] = htmlspecialchars($row["RESERVATION"]);
         $data[$row["FAMILY_NUMBER"]]["attended"] = htmlspecialchars($row["ATTENDED"]);
         $data[$row["FAMILY_NUMBER"]]["picked_up"] = htmlspecialchars($row["PICKED_UP"]);
+        $data[$row["FAMILY_NUMBER"]]["notes"] = htmlspecialchars($row["NOTES"]);
         $i++;
     }
 

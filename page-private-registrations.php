@@ -6,6 +6,8 @@ $conn = dbConnect('read');
 
 // Prepare MySQL statement
 $query_families = mysqli_query($conn, "SELECT * FROM registered_families");
+$query_adults = mysqli_query($conn, "SELECT * FROM registered_members WHERE age >= 18");
+$query_children = mysqli_query($conn, "SELECT * FROM registered_members WHERE age < 18");
 
 $query_organizations = mysqli_query($conn, "SELECT organization,
         COUNT(organization) as registered,
@@ -174,7 +176,6 @@ setcookie("old-families", $total_families, time()+(86400 * 30), "/");
 $conn->close();
 
 get_header('archive');
-
 ?>
 </header>
 <main class="registrations-dashboard wrapper">
@@ -219,6 +220,8 @@ get_header('archive');
 
                 <div class="card span-2">
                     <h2>Family Makeup</h2>
+                    <p>Adults: <strong><?php echo mysqli_num_rows($query_adults); ?></strong></p>
+                    <p>Children: <strong><?php echo mysqli_num_rows($query_children); ?></strong></p>
                     <canvas id="familyMakeupGraph" width="100%"></canvas>
                 </div>
 

@@ -53,6 +53,10 @@ get_header('archive');
                 if(body == "invalid") {
                     errorFamilyCode.style.display = "block";
                     errorFamilyCode.innerText = "Invalid code. Please check in at the registration table.";
+                } else if (body == "blocked") {
+                    console.log(body);
+                    errorFamilyCode.style.display = "block";
+                    errorFamilyCode.innerText = "Too many failed attempts. Please check in at the registration table.";
                 } else {
                     errorFamilyCode.style.display = "none";
                     famName.innerText = body + " ";
@@ -60,6 +64,7 @@ get_header('archive');
                 }
             });
         } else {
+            errorFamilyCode.innerText = "";
             buttonSubmit.style.display = "none";
         }
     });

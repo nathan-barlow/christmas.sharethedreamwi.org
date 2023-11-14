@@ -58,7 +58,7 @@ $code = strtoupper($_POST['code']);
 $fam_name = getFamilyName($code);
 
 if ($attemptCount > 20) {
-    echo "Too many failed attempts. If you are not a bot, please contact us to unblock you.";
+    echo "blocked";
     logError("FAILED CODE", ("A user made more than 20 failed attempts to input a valid invite code. Most recent code: " . $code . ". IP address: " . $clientIP));
 } else if($fam_name && $_POST['submitted']) {
     if(markHere($code)) {

@@ -276,17 +276,20 @@
         let newCard = `
             <tr id="family-${family['fam_number']}" class="family-row" data-here="${family['attended']}" data-left="${family['picked_up']}">
                 <td class="fam-number">
-                    <a title="View ${family['fam_name']} Family" href="/private-registered-families#family-${family['fam_number']}">
+                    <a target="_blank" title="View ${family['fam_name']} Family" href="/private-registered-families#family-${family['fam_number']}">
                         ${family['fam_number']}
                     </a>
                 </td>
                 <td class="fam-reservation">${family['fam_reservation']}</td>
                 <td class="fam-code">
-                    <a title="Edit ${family['fam_name']} Family" href="/private-register-family/?edit-family=${family['fam_number']}">
+                    <a target="_blank" title="Edit ${family['fam_name']} Family" href="/private-register-family/?edit-family=${family['fam_number']}">
                         ${family['fam_code']}
                     </a>
                 </td>
-                <td class="fam-name">${family['fam_name']}</td>
+                <td class="fam-name">
+                    ${family['fam_name']}
+                    <button hidden data-text="${family['notes']}" class="button-mini button-icon-only tooltip button-gray-100"><i class="bi bi-chat-text"></i></button>
+                </td>
                 <td class="fam-phone">${family['fam_phone']}</td>
                 <td class="fam-email" title="${family['fam_email']}">${family['fam_email']}</td>
                 <td class="fam-gift">${family['fam_gift']}</td>

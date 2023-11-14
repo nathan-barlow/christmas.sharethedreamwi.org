@@ -55,6 +55,8 @@ get_header();
     const user_event_time = localStorage.getItem('std2023_event_time');
     if(event_time_element && user_event_time) {
         event_time_element.innerHTML = user_event_time + `<button data-text="This is your reserved time stored locally on your device from your registration. Please arrive anytime within this window. Entire event will be held from ${event_time}." class="button-mini button-icon-only tooltip button-gray-100"><i class="bi bi-info-circle"></i></button>`;
+
+        document.querySelector(".message-error").style.display = "none";
     }
 </script>
 
