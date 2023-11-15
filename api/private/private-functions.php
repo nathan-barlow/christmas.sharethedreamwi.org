@@ -138,40 +138,65 @@ function getFamiliesEvent() {
 
     $query_families = mysqli_query($conn,
         "SELECT
-            family_id as FAMILY_CODE,
-            family_name as LAST_NAME,
-            phone as PHONE,
-            email as EMAIL,
-            family_number as FAMILY_NUMBER,
-            family_gift as GIFT,
-            attended as ATTENDED,
-            picked_up as PICKED_UP,
-            reservation as RESERVATION,
-            notes as NOTES
-        FROM registered_families
-        ORDER BY picked_up, attended, reservation, family_name");
+            rf.family_id as FAMILY_CODE,
+            rf.family_name as LAST_NAME,
+            rf.phone as PHONE,
+            rf.email as EMAIL,
+            rf.family_number as FAMILY_NUMBER,
+            rf.family_gift as GIFT,
+            rf.attended as ATTENDED,
+            rf.picked_up as PICKED_UP,
+            rf.reservation as RESERVATION,
+            rf.notes as NOTES,
+            rf.checked_in_online as CHECKED_IN_ONLINE,
+            COUNT(rm.member_id) as CHILDREN
+        FROM registered_families rf
+        LEFT JOIN registered_members rm ON rf.family_id = rm.family_id AND rm.age < 18
+        GROUP BY rf.family_id
+        ORDER BY rf.picked_up, rf.attended, rf.reservation, rf.family_name;");
+
+    $query_people = mysqli_query($conn,
+        "SELECT COUNT(*) AS member_count
+         FROM registered_members
+         JOIN registered_families ON registered_members.family_id = registered_families.family_id
+         WHERE registered_families.attended IS NOT NULL AND registered_families.picked_up IS NULL;");
+
+    $query_people_served = mysqli_query($conn,
+        "SELECT COUNT(*) AS member_count
+         FROM registered_members
+         JOIN registered_families ON registered_members.family_id = registered_families.family_id
+         WHERE registered_families.attended IS NOT NULL;");
 
     $data = array();
     $i = 0;
     while($row = mysqli_fetch_array($query_families)){
-        $data[$row["FAMILY_NUMBER"]]["fam_number"] = $row["FAMILY_NUMBER"];
         $data[$row["FAMILY_NUMBER"]]["fam_code"] = htmlspecialchars($row["FAMILY_CODE"]);
         $data[$row["FAMILY_NUMBER"]]["fam_name"] = htmlspecialchars($row["LAST_NAME"]);
         $data[$row["FAMILY_NUMBER"]]["fam_phone"] = htmlspecialchars($row["PHONE"]);
+        $data[$row["FAMILY_NUMBER"]]["fam_number"] = $row["FAMILY_NUMBER"];
         $data[$row["FAMILY_NUMBER"]]["fam_email"] = htmlspecialchars($row["EMAIL"]);
+        $data[$row["FAMILY_NUMBER"]]["fam_kids"] = htmlspecialchars($row["CHILDREN"]);
         $data[$row["FAMILY_NUMBER"]]["fam_gift"] = htmlspecialchars($row["GIFT"]);
         $data[$row["FAMILY_NUMBER"]]["fam_reservation"] = htmlspecialchars($row["RESERVATION"]);
         $data[$row["FAMILY_NUMBER"]]["attended"] = htmlspecialchars($row["ATTENDED"]);
         $data[$row["FAMILY_NUMBER"]]["picked_up"] = htmlspecialchars($row["PICKED_UP"]);
         $data[$row["FAMILY_NUMBER"]]["notes"] = htmlspecialchars($row["NOTES"]);
+        $data[$row["FAMILY_NUMBER"]]["checked_in_online"] = htmlspecialchars($row["CHECKED_IN_ONLINE"]);
         $i++;
     }
 
-    $data = array_values($data);
+    $people_here = mysqli_fetch_assoc($query_people)["member_count"];
+    $people_served = mysqli_fetch_assoc($query_people_served)["member_count"];
+
+    $result = array(
+        "people_here" => $people_here,
+        "people_served" => $people_served,
+        "families" => array_values($data)
+    );
 
     $conn->close();
 
-    return $data;
+    return $result;
 }
 
 // code: family number
@@ -253,7 +278,7 @@ function toggleFamily($number, $action) {
             SET attended = CASE
                 WHEN attended IS NULL THEN NOW()
                 ELSE NULL
-            END
+            END, checked_in_online = 0
             WHERE family_number = ?");
     } else if ($action == 'left') {
         $toggle_query = $conn->prepare("UPDATE registered_families

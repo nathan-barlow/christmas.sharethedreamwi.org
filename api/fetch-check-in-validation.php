@@ -41,7 +41,7 @@ function getFamilyName($code) {
 function markHere($code) {
     $conn = dbConnect('read');
 
-    $mark_here = $conn->prepare("UPDATE registered_families SET attended = NOW() WHERE family_id = ?");
+    $mark_here = $conn->prepare("UPDATE registered_families SET attended = NOW(), checked_in_online = 1 WHERE family_id = ?");
     $mark_here->bind_param("s", $code);
     $mark_here->execute();
     

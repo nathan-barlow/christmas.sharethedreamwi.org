@@ -966,6 +966,7 @@ dialog {
 
    .registrations {
       margin-top: var(--gap);
+      position: relative;
 
       p {
          margin: 0;
@@ -1007,11 +1008,16 @@ dialog {
 
          td.fam-name {
             min-width: 160px;
+            position: relative;
          }
 
          td.fam-email {
             width: 100%;
             max-width: 343px;
+         }
+
+         td.fam-kids {
+            text-align: center;
          }
 
          td.fam-gift {
@@ -1121,6 +1127,16 @@ dialog {
       }
 
       .family-row {
+         &[data-checked-in-online="1"] {
+            td.fam-number::after {
+               font-family: "Bootstrap-icons";
+               content: "\F3EE";
+               position: absolute;
+               left: 0.5rem;
+               color: var(--color-frgd);
+            }
+         }
+
          &:not([data-here=""]) {
             --color-bkgd: var(--color-warning-100);
             --color-frgd: var(--color-warning-500);
@@ -1130,6 +1146,10 @@ dialog {
                   stroke-dashoffset: 49.25483322143555px;
                }
             }
+         }
+         &[data-checked-in-online="1"] {
+            --color-bkgd: #cffafe;
+            --color-frgd: #155e75;
          }
          &:not([data-left=""]) {
             --color-bkgd: var(--color-success-100);
@@ -1560,7 +1580,7 @@ dialog {
 
    .filter-options {
       button {
-         height: 38px;
+         height: 40px;
       }
    }
 

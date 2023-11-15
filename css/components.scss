@@ -131,6 +131,7 @@ button i {
 // Creates a hover box above the tooltip icon using its data-text attribute
 .tooltip {
    position: relative;
+   z-index: 1;
 
    &:not([data-text=""]) {
       display: inline-block !important;

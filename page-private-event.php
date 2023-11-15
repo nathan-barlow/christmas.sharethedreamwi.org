@@ -18,6 +18,24 @@
         <a href="/private-event-settings">Event Settings</a>
         <a class="active" href="/private-event">Event</a>
     </nav>
+    <div class="grid grid-4 margin-top">
+        <div class="card totals-section">
+            <p>People Here <i class="bi bi-people"></i></p>
+            <h2 id="total-people"></h2>
+        </div>
+        <div class="card totals-section">
+            <p>People Served <i class="bi bi-people-fill"></i></p>
+            <h2 id="total-people-served"></h2>
+        </div>
+        <div class="card totals-section">
+            <p>Families Served <i class="bi bi-house-fill"></i></p>
+            <h2 id="total-families-served"></h2>
+        </div>
+        <div class="card totals-section">
+            <p>Checked In Online <i class="bi bi-globe"></i></p>
+            <h2 id="total-online"></h2>
+        </div>
+    </div>
     <div id="registrations" class="card registrations">
         <div class="options-container" id="search-options">
             <button class="edit-family button button-gray-150" onclick="toggleMenu('search')" title="search options">
@@ -81,6 +99,7 @@
                         <td class="fam-name">Name</td>
                         <td class="fam-phone">Phone</td>
                         <td class="fam-email">Email</td>
+                        <td class="fam-kids">Kids</td>
                         <td class="fam-gift">Gift</td>
                         <td class="fam-here">Here</td>
                         <td class="fam-left">Left</td>
@@ -233,7 +252,8 @@
                 if(body == "Authorization required") {
                     document.querySelector(".family-member-table").innerHTML += "<div class='message message-error'>Authorization failed</div>";
                 } else {
-                    let allFamilies = JSON.parse(body);
+                    let result = JSON.parse(body);
+                    let allFamilies = result.families;
 
                     if(JSON.stringify(allFamilies) != JSON.stringify(oldFamilies)) {
                         document.getElementById("table-families").innerHTML = "";
@@ -254,7 +274,7 @@
                     oldFamilies = allFamilies;
 
                     filterFamilies(null, true);
-                    generateFilters();
+                    generateTotals(result.people_here, result.people_served);
                 }
             });
     }
@@ -274,15 +294,15 @@
         let container = document.getElementById("table-families");
 
         let newCard = `
-            <tr id="family-${family['fam_number']}" class="family-row" data-here="${family['attended']}" data-left="${family['picked_up']}">
+            <tr id="family-${family['fam_number']}" class="family-row" data-here="${family['attended']}" data-left="${family['picked_up']}" data-checked-in-online="${family['checked_in_online']}">
                 <td class="fam-number">
-                    <a target="_blank" title="View ${family['fam_name']} Family" href="/private-registered-families#family-${family['fam_number']}">
+                    <a title="View ${family['fam_name']} Family" href="/private-registered-families#family-${family['fam_number']}">
                         ${family['fam_number']}
                     </a>
                 </td>
                 <td class="fam-reservation">${family['fam_reservation']}</td>
                 <td class="fam-code">
-                    <a target="_blank" title="Edit ${family['fam_name']} Family" href="/private-register-family/?edit-family=${family['fam_number']}">
+                    <a title="Edit ${family['fam_name']} Family" href="/private-register-family/?edit-family=${family['fam_number']}">
                         ${family['fam_code']}
                     </a>
                 </td>
@@ -292,6 +312,7 @@
                 </td>
                 <td class="fam-phone">${family['fam_phone']}</td>
                 <td class="fam-email" title="${family['fam_email']}">${family['fam_email']}</td>
+                <td class="fam-kids">${family['fam_kids']}</td>
                 <td class="fam-gift">${family['fam_gift']}</td>
                 <td class="fam-here">
                     <button class="edit-family button-toggle button button-white button-here" onclick="toggleFamily(${family['fam_number']}, 'here')" title="mark here">
@@ -429,7 +450,8 @@
         });
     }
 
-    function generateFilters() {
+    function generateTotals(numPeople, numPeopleServed) {
+        // FILTER BUTTONS
         let here = document.querySelector('#here');
         let notHere = document.querySelector('#not-attended');
         let left = document.querySelector('#left');
@@ -441,6 +463,20 @@
         here.querySelector("strong").innerText = numHere;
         notHere.querySelector("strong").innerText = numNotHere;
         left.querySelector("strong").innerText = numLeft;
+
+        // TOTALS AT TOP
+        let totalPeopleServed = document.querySelector('#total-people-served');
+        let totalPeople = document.querySelector('#total-people');
+        let totalOnline = document.querySelector('#total-online');
+        let totalFamiliesServed = document.querySelector('#total-families-served');
+
+        let numOnline = document.querySelectorAll(".family-row[data-checked-in-online='1']").length;
+        let numServed = document.querySelectorAll(".family-row:not([data-here=''])").length;
+
+        totalPeopleServed.innerText = numPeopleServed;
+        totalPeople.innerText = numPeople;
+        totalOnline.innerText = numOnline;
+        totalFamiliesServed.innerText = numServed;
     };
 </script>
 
