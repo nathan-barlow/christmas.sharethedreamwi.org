@@ -131,10 +131,10 @@ $query_notes = mysqli_query($conn, "SELECT family_number, family_name, notes FRO
 $family_notes = mysqli_fetch_all($query_notes);
 
 // DATE GRAPH QUERY
-$query_dates = mysqli_query($conn, "SELECT DATE_FORMAT(date_registered, '%m-%d') AS the_date, COUNT(*) AS count
+$query_dates = mysqli_query($conn, "SELECT DATE_FORMAT(DATE_SUB(date_registered, INTERVAL 5 HOUR), '%m-%d') AS the_date, COUNT(*) AS count
     FROM registered_families
     GROUP BY the_date
-    ORDER BY the_date;");
+    ORDER BY the_date");
 
 $registration_dates = [];
 while ($row = mysqli_fetch_assoc($query_dates)) {

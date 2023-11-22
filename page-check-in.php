@@ -7,7 +7,7 @@ get_header('archive');
     
     <div class="wrapper wrapper-narrow">
         <div>
-            <h1><?php the_title(); ?></h1>
+            <h1>Check In</h1>
             <?php the_content(); ?>
         </div>
             
@@ -23,6 +23,8 @@ get_header('archive');
             <div class="form-error" id="error-fam-code"></div>
 
             <button id="submit-button" class="button-main-500" hidden>Check in <span id="fam-name"></span>family</button>
+
+            <i class="c-gray400 margin-top" id="message-fam-code"></i>
         </form>
     </div>
     <?php endwhile; else: endif; ?>
@@ -31,12 +33,15 @@ get_header('archive');
 <script>
     const familyCode = document.getElementById("fam-code");
     const errorFamilyCode = document.getElementById("error-fam-code");
+    const messageFamilyCode = document.getElementById("message-fam-code");
     const buttonSubmit = document.getElementById("submit-button");
     const famName = document.getElementById("fam-name");
     const form = document.getElementById('check-in-form');
+    const storedCode = localStorage.getItem("std2023_family_code");
+    const storedNumber = localStorage.getItem("std2023_family_number");
     form.addEventListener("submit", fetchSubmitForm);
 
-    familyCode.addEventListener("input", (event) => { 
+    familyCode.addEventListener("input", (event) => {
         const famCodeCheck = document.querySelector("#span-fam-code svg");
         const famCodeError = document.querySelector("#error-fam-code");
         const url = "https://registration.christmas.sharethedreamwi.org/fetch-check-in-validation.php";
@@ -65,6 +70,7 @@ get_header('archive');
             });
         } else {
             errorFamilyCode.innerText = "";
+            messageFamilyCode.innerText = "";
             buttonSubmit.style.display = "none";
         }
     });
@@ -87,16 +93,31 @@ get_header('archive');
                 errorFamilyCode.innerText = "Error marking family here. Please check in at the registration table.";
             } else {
                 let familyData = JSON.parse(body);
+
+                localStorage.setItem("std2023_family_number", familyData.number);
+
                 form.style.display = "none";
                 form.insertAdjacentHTML("beforebegin", `
                     <div class="message message-success">
                         <h2>${familyData.number}</h2>
-                        ${familyData.name} family successfully checked in. Please bypass the registration table and show your phone to the next volunteer to collect your bag.<br><br>
+                        ${familyData.name} family successfully checked in! Please bypass the registration table and show your phone to the next volunteer to enter the event.<br><br>
                         <strong>Family Code: </strong>${familyData.code}
                     </div>`)
             }
         });
     }
+
+    addEventListener("DOMContentLoaded", (event) => {
+        if (storedNumber) {
+            let heading = document.querySelector("h1");
+            let message = `<div class="message message-success">Your family is already checked in! Family Number: <strong>${storedNumber}</strong><div>`;
+            heading.insertAdjacentHTML("beforebegin", message);
+        } else if(storedCode) {
+            familyCode.value = storedCode;
+            messageFamilyCode.innerText = "Family code retrieved from your local device storage."
+            familyCode.dispatchEvent(new Event('input'));
+        }
+    });
 
 </script>
 
