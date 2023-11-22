@@ -478,6 +478,10 @@ figcaption {
    }
 }
 
+.horizontal-scroll {
+   overflow-x: scroll;
+}
+
 // SECONDARY NAV ---
 nav.nav-secondary {
    display: flex;
