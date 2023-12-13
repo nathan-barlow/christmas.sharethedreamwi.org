@@ -151,6 +151,7 @@ button i {
       background-color: var(--color-gray-150-t);
       backdrop-filter: blur(16px);
       z-index: 101;
+      white-space: normal;
       display: none;
    }
 
@@ -241,7 +242,7 @@ button i {
 .box-list b,
 .filter-options strong {
    margin-left: 0.5rem;
-   margin-right: -0.5rem;
+   margin-right: 0px;
    padding: 0px 0.25rem;
    background-color: var(--color-success-100);
    border-radius: 6px;
@@ -284,7 +285,7 @@ table {
    box-shadow: 0 0 0 1px var(--color-gray-200);
    /* this draws the table border  */
    border-radius: var(--br-small);
-   overflow: hidden;
+   //overflow: hidden;
 
    thead {
       font-weight: bold;

@@ -25,7 +25,7 @@ if ($_POST['confirm'] === "DELETE" && isset($_POST['family-id-delete'])) {
 }
 
 // Prepare MySQL statement
-$query_families = mysqli_query($conn, "SELECT * FROM registered_families");
+$query_num_families = mysqli_query($conn, "SELECT * FROM registered_families");
 
 $query_organizations = mysqli_query($conn, "SELECT organization,
         COUNT(organization) as registered,
@@ -66,7 +66,7 @@ $query_members = mysqli_query($conn,
         registered_members.member_id as MEMBER_ID,
         registered_members.first_name as FIRST_NAME,
             CASE
-                WHEN registered_members.age = 18 THEN 'adult'
+                WHEN registered_members.age >= 18 THEN 'adult'
                 ELSE registered_members.age
             END as AGE,
         registered_members.gift_preference as GIFT
@@ -74,26 +74,106 @@ $query_members = mysqli_query($conn,
     JOIN registered_members ON (registered_families.family_id = registered_members.family_id)
     ORDER BY family_number, registered_members.age DESC");
 
-$data = array();
-$i = 0;
-while($row = mysqli_fetch_array($query_members)){
-    $data[$row["FAMILY_NUMBER"]]["fam_number"] = $row["FAMILY_NUMBER"];
-    $data[$row["FAMILY_NUMBER"]]["fam_code"] = htmlspecialchars($row["FAMILY_CODE"]);
-    $data[$row["FAMILY_NUMBER"]]["fam_name"] = htmlspecialchars($row["LAST_NAME"]);
-    $data[$row["FAMILY_NUMBER"]]["fam_phone"] = htmlspecialchars($row["PHONE"]);
-    $data[$row["FAMILY_NUMBER"]]["fam_email"] = htmlspecialchars($row["EMAIL"]);
-    $data[$row["FAMILY_NUMBER"]]["fam_gift"] = htmlspecialchars($row["FAMILY_GIFT"]);
-    $data[$row["FAMILY_NUMBER"]]["fam_reservation"] = htmlspecialchars($row["RESERVATION"]);
-    $data[$row["FAMILY_NUMBER"]]["packed"] = htmlspecialchars($row["PACKED"]);
-    $data[$row["FAMILY_NUMBER"]]["attended"] = htmlspecialchars($row["ATTENDED"]);
-    $data[$row["FAMILY_NUMBER"]]["picked_up"] = htmlspecialchars($row["PICKED_UP"]);
-    $data[$row["FAMILY_NUMBER"]]["register_date"] = ($row["DATE_REGISTERED"]);
-    $data[$row["FAMILY_NUMBER"]]["members"][$i] = array(
-        "name"=>htmlspecialchars($row["FIRST_NAME"]),
-        "age"=>htmlspecialchars($row["AGE"]),
-        "gift"=>htmlspecialchars($row["GIFT"]),
+$query_families = mysqli_query($conn,
+    "SELECT
+        rf.family_number as FAMILY_NUMBER,
+        rf.family_id as FAMILY_CODE,
+        rm.first_name as FIRST_NAME,
+        rf.family_name as LAST_NAME,
+        rf.phone as PHONE,
+        rf.email as EMAIL,
+        rf.family_gift as GIFT,
+        rf.reservation as RESERVATION,
+        rf.notes as NOTES,
+        COUNT(rm.member_id) as FAMILY_MEMBERS,
+        COUNT(CASE WHEN rm.age < 18 THEN 1 END) as CHILDREN,
+        COUNT(CASE WHEN rm.age >= 18 THEN 1 END) as ADULTS,
+        rf.date_registered as DATE_REGISTERED,
+        rf.email_reminders as EMAIL_REMINDERS,
+        rf.access as ACCESS,
+        rf.packed as PACKED,
+        rf.attended as ATTENDED,
+        rf.picked_up as PICKED_UP,
+        rf.checked_in_online as CHECKED_IN_ONLINE,
+        COUNT(CASE WHEN rm.age >= 0 AND rm.age <= 3 THEN 1 END) as AGE_0_TO_3,
+        COUNT(CASE WHEN rm.age >= 4 AND rm.age <= 7 THEN 1 END) as AGE_4_TO_7,
+        COUNT(CASE WHEN rm.age >= 8 AND rm.age <= 11 THEN 1 END) as AGE_8_TO_11,
+        COUNT(CASE WHEN rm.age >= 12 AND rm.age <= 17 THEN 1 END) as AGE_12_TO_17
+    FROM registered_families rf
+    LEFT JOIN registered_members rm ON rf.family_id = rm.family_id
+    GROUP BY rf.family_id
+    ORDER BY rf.family_name;");
+
+$families = array();
+while($row = mysqli_fetch_array($query_families)) {
+    $families[] = array(
+        "FAMILY NUMBER"       => htmlspecialchars($row["FAMILY_NUMBER"]),
+        "FAMILY CODE"         => htmlspecialchars($row["FAMILY_CODE"]),
+        "FIRST NAME"          => htmlspecialchars($row["FIRST_NAME"]),
+        "LAST NAME"           => htmlspecialchars($row["LAST_NAME"]),
+        "PHONE"               => htmlspecialchars($row["PHONE"]),
+        "EMAIL"               => htmlspecialchars($row["EMAIL"]),
+        "GIFT"                => htmlspecialchars($row["GIFT"]),
+        "RESERVATION"         => htmlspecialchars($row["RESERVATION"]),
+        "NOTES"               => htmlspecialchars($row["NOTES"]),
+        "FAMILY MEMBERS"      => htmlspecialchars($row["FAMILY_MEMBERS"]),
+        "CHILDREN"            => htmlspecialchars($row["CHILDREN"]),
+        "ADULTS"              => htmlspecialchars($row["ADULTS"]),
+        "DATE REGISTERED"     => htmlspecialchars($row["DATE_REGISTERED"]),
+        "EMAIL REMINDERS"     => htmlspecialchars($row["EMAIL_REMINDERS"]),
+        "ACCESS"              => htmlspecialchars($row["ACCESS"]),
+        "PACKED"              => htmlspecialchars($row["PACKED"]),
+        "ATTENDED"            => htmlspecialchars($row["ATTENDED"]),
+        "PICKED UP"           => htmlspecialchars($row["PICKED_UP"]),
+        "CHECKED IN ONLINE"   => htmlspecialchars($row["CHECKED_IN_ONLINE"]),
+        "AGE 0 TO 3"          => htmlspecialchars($row["AGE_0_TO_3"]),
+        "AGE 4 TO 7"          => htmlspecialchars($row["AGE_4_TO_7"]),
+        "AGE 8 TO 11"         => htmlspecialchars($row["AGE_8_TO_11"]),
+        "AGE 12 TO 17"        => htmlspecialchars($row["AGE_12_TO_17"])
     );
-    $i++;
+}
+
+$members = array();
+while($row = mysqli_fetch_array($query_members)){
+    $members[] = array(
+        "FAMILY NUMBER"    => htmlspecialchars($row["FAMILY_NUMBER"]),
+        "FAMILY CODE"      => htmlspecialchars($row["FAMILY_CODE"]),
+        "NAME"             => htmlspecialchars($row["FIRST_NAME"]),
+        "AGE"              => htmlspecialchars($row["AGE"]),
+        "GIFT"             => htmlspecialchars($row["GIFT"])
+    );
+}
+
+function arrayToCSV($data, $filename) {
+    $today = date("Y-m-d");
+    $filename = $filename . "_" . $today . ".csv";
+
+    ob_clean();
+    $fp = fopen($filename, 'w');
+
+    // Use the keys of the first element as headers
+    $csvHeader = array_keys(reset($data));
+    fputcsv($fp, $csvHeader);
+
+    foreach ($data as $row) {
+        fputcsv($fp, $row);
+    }
+
+    // Set headers for file download
+    header('Content-type: text/csv');
+    header('Content-disposition:attachment; filename="'.$filename.'"');
+    
+    // Output file content
+    readfile($filename);
+
+    // Close file pointer
+    fclose($fp);
+
+    // Remove the temporary file
+    unlink($filename);
+
+    // Terminate script
+    exit;
 }
 
 function writeToCSV($family_data) {
@@ -134,15 +214,19 @@ function writeToCSV($family_data) {
     exit;
 }
 
-if(isset($_POST['download-csv'])) {
-    writeToCSV($data);
+if(isset($_POST['download-csv-members'])) {
+    arrayToCSV($members, "registered-members");
+}
+
+if(isset($_POST['download-csv-families'])) {
+    arrayToCSV($families, "registered-families");
 }
 
 $old_members = isset($_COOKIE["old-members"]) ? htmlspecialchars($_COOKIE["old-members"]) : '';
 $old_families = isset($_COOKIE["old-families"]) ? htmlspecialchars($_COOKIE["old-families"]) : '';
 
 $new_members = mysqli_num_rows($query_members);
-$new_families = mysqli_num_rows($query_families);
+$new_families = mysqli_num_rows($query_num_families);
 
 if($old_families || $old_members) {
     if($new_members - $old_members > 0) {
@@ -195,10 +279,15 @@ get_header('archive');
                         <i class="bi bi-printer"></i>
                         <p>Print Labels</p>
                     </button>
-                    <form method="post" hidden id="download-csv"></form>
-                    <button class="options-menu-item" form="download-csv" name="download-csv" value="true">
+                    <form method="post" hidden id="download-csv-members"></form>
+                    <form method="post" hidden id="download-csv-families"></form>
+                    <button class="options-menu-item" form="download-csv-members" name="download-csv-members" value="true">
                         <i class="bi bi-download"></i>
-                        <p>Download CSV</p>
+                        <p>Download Family Members</p>
+                    </button>
+                    <button class="options-menu-item" form="download-csv-families" name="download-csv-families" value="true">
+                        <i class="bi bi-download"></i>
+                        <p>Download Families</p>
                     </button>
                     <button class="options-menu-item" id="expand-contract" onclick="toggleAllTables()">
                         <i class="bi bi-arrows-angle-expand"></i>

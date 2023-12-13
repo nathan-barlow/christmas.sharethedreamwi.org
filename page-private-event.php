@@ -44,27 +44,27 @@
             <div id="search-options-menu" class="options-menu">
                 <button class="flex flex-xs flex-center options-menu-item" data-query=".fam-number" data-selected="true">
                     <i class="bi bi-check2 opacity-0"></i>
-                    <p>Family Number</p>
+                    Family Number
                 </button>
                 <button class="flex flex-xs flex-center options-menu-item" data-query=".fam-name" data-selected="true">
                     <i class="bi bi-check2 opacity-0"></i>
-                    <p>Last Name</p>
+                    Last Name
                 </button>
                 <button class="flex flex-xs flex-center options-menu-item" data-query=".fam-code" data-selected="true">
                     <i class="bi bi-check2 opacity-0"></i>
-                    <p>Family Code</p>
+                    Family Code
                 </button>
                 <button class="flex flex-xs flex-center options-menu-item" data-query=".fam-email" data-selected="false">
                     <i class="bi bi-check2 opacity-0"></i>
-                    <p>Family Email</p>
+                    Family Email
                 </button>
                 <button class="flex flex-xs flex-center options-menu-item" data-query=".fam-phone" data-selected="false">
                     <i class="bi bi-check2 opacity-0"></i>
-                    <p>Family Phone</p>
+                    Family Phone
                 </button>
                 <button class="flex flex-xs flex-center options-menu-item" data-query=".fam-gift" data-selected="false">
                     <i class="bi bi-check2 opacity-0"></i>
-                    <p>Family Gift</p>
+                    Family Gift
                 </button>
             </div>
         </div>

@@ -95,7 +95,7 @@ while ($row = mysqli_fetch_assoc($query_feedback_satisfaction)) {
 }
 
 // FEEDBACK MESSAGES QUERY
-$query_feedback_messages = mysqli_query($conn, "SELECT message FROM feedback WHERE message != '' ORDER BY LENGTH(message);");
+$query_feedback_messages = mysqli_query($conn, "SELECT message FROM feedback WHERE message != '' ORDER BY timestamp, LENGTH(message);");
 $feedback_messages = mysqli_fetch_all($query_feedback_messages);
 
 // LANGUAGE CHANGES QUERY
@@ -289,7 +289,7 @@ get_header('archive');
             <h2>Family Notes</h2>
             <p>This includes any and all family notes made by registration admin.</p>
 
-            <!-- <table class="table-padded">
+            <table class="table-padded">
                 <thead>
                     <tr>
                         <td>#</td>
@@ -298,17 +298,17 @@ get_header('archive');
                     </tr>
                 </thead>
                 <tbody>
-                <?php// foreach($family_notes as $note) : ?>
+                <?php foreach($family_notes as $note) : ?>
                     <tr>
                         <td>
-                            <a title="View Family" href="/private-registered-families#family-<?php// echo htmlspecialchars($note[0]) ?>"><?php //echo htmlspecialchars($note[0]) ?></a>
+                            <a title="View Family" href="/private-registered-families#family-<?php echo htmlspecialchars($note[0]) ?>"><?php echo htmlspecialchars($note[0]) ?></a>
                         </td>
-                        <td><?php //echo htmlspecialchars($note[1]) ?></td>
-                        <td><?php //echo htmlspecialchars($note[2]) ?></td>
+                        <td><?php echo htmlspecialchars($note[1]) ?></td>
+                        <td><?php echo htmlspecialchars($note[2]) ?></td>
                     </tr>
-                <?php// endforeach; ?>
+                <?php endforeach; ?>
                 </tbody>
-            </table> -->
+            </table>
         </div>
 
         <div class="card" id="feedback-messages">

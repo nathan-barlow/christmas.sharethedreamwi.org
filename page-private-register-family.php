@@ -26,7 +26,7 @@ get_header('archive');
                 <div class="card" id="family-information">
                     <h2>Family Information</h2>
 
-                    <input type="hidden" name="access" id="fam-access" value="Phone">
+                    <input type="hidden" name="access" id="fam-access" value="<?php echo wp_get_current_user()->user_firstname ?>">
 
                     <label for="fam-code">
                         <strong>Family Code</strong>

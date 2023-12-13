@@ -25,8 +25,8 @@ get_header();
                         </div>
                         
                         <span>
-                            <strong>$6 per child</strong>
-                            <span>Hat and mittens to keep them toasty warm.</span>
+                            <strong>$10 per child</strong>
+                            <span>Hat, mittens, and socks to keep them toasty warm.</span>
                         </span>
                     </div>
 

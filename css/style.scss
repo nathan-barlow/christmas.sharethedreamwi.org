@@ -163,7 +163,7 @@ header {
    background-size: cover;
    background-attachment: fixed;
    background-position: top;
-   position: sticky;
+   //position: sticky;
 }
 
 header.page {
@@ -175,6 +175,7 @@ header.page {
 
 header:has(.home-header) {
    min-height: max(700px, calc(100svh + 72px));
+   position: sticky;
 }
 
 .home-header {
@@ -1047,7 +1048,7 @@ dialog {
          background-color: white;
          border: 1px solid var(--color-gray-300);
          transition: transform 300ms cubic-bezier(0.8, 0, 0.2, 1);
-         position: relative;
+         //position: relative;
          scroll-margin-top: 8.4rem;
 
          .message {

@@ -129,7 +129,7 @@ function getTimeframes($limit = true) {
             }
         }
 
-        if(count($available_timeframes) == 1) {
+        if(count($available_timeframes) <= 1) {
             // If there's only one key remaining, get the two lowest values
             asort($timeframes); // Sort the original array by values in ascending order
             $available_timeframes = array_slice($timeframes, 0, 2, true);

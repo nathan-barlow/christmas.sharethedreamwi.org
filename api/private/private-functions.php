@@ -23,7 +23,7 @@ function getFamilies() {
             registered_members.member_id as MEMBER_ID,
             registered_members.first_name as FIRST_NAME,
             CASE
-                WHEN registered_members.age = 18 THEN 'adult'
+                WHEN registered_members.age >= 18 THEN 'adult'
                 ELSE registered_members.age
             END as AGE,
             registered_members.gift_preference as GIFT
