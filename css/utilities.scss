@@ -48,6 +48,10 @@
    color: var(--color-gray-500);
 }
 
+.c-main500 {
+   color: var(--color-main-500);
+}
+
 .center {
    text-align: center;
 }
@@ -162,7 +166,7 @@
 // for textareas
 .vertical-resize {
    resize: vertical;
-   min-height: 200px;
+   min-height: 160px;
    max-width: 100%;
 }
 

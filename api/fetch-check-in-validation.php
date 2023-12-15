@@ -24,15 +24,26 @@ $delay = min(INITIAL_DELAY * pow(INCREMENT_FACTOR, $attemptCount), MAX_DELAY);
 function getFamilyName($code) {
     $conn = dbConnect('read');
 
-    $query_get_name = $conn->prepare("SELECT family_name, family_number FROM registered_families WHERE family_id = ?");
+    $query_get_name = $conn->prepare("SELECT
+            rf.family_number as family_number,
+            rf.family_name as family_name,
+            COUNT(CASE WHEN rm.age < 18 THEN 1 END) as children,
+            COUNT(CASE WHEN rm.age >= 18 THEN 1 END) as adults
+        FROM registered_families rf
+        LEFT JOIN registered_members rm ON rf.family_id = rm.family_id
+        WHERE rf.family_id = ?");
     $query_get_name->bind_param("s", $code);
     $query_get_name->execute();
     
     $result = $query_get_name->get_result();
     $row = $result->fetch_assoc();
 
-    if ($row) {
-        return ["name" => htmlspecialchars($row['family_name']), "number" => htmlspecialchars($row['family_number'])];
+    if($row) {
+        return [
+            "name"    => htmlspecialchars($row['family_name']),
+            "number"  => htmlspecialchars($row['family_number']),
+            "children"  => htmlspecialchars($row['children']),
+            "adults"  => htmlspecialchars($row['adults'])];
     } else {
         return false;
     }
@@ -53,7 +64,6 @@ function markHere($code) {
     }
 }
 
-// Continue with your code validation logic
 $code = strtoupper($_POST['code']);
 $fam_name = getFamilyName($code);
 
@@ -62,12 +72,12 @@ if ($attemptCount > 20) {
     logError("FAILED CODE", ("A user made more than 20 failed attempts to input a valid invite code. Most recent code: " . $code . ". IP address: " . $clientIP));
 } else if($fam_name && $_POST['submitted']) {
     if(markHere($code)) {
-        echo json_encode(["code" => htmlspecialchars($code), "name" => htmlspecialchars($fam_name['name']), "number" => htmlspecialchars($fam_name['number'])]);
+        echo json_encode(["code" => htmlspecialchars($code), "name" => $fam_name['name'], "number" => $fam_name['number']]);
     } else {
         echo "error";
     }
-} else if($fam_name) {
-    echo $fam_name['name'];
+} else if($fam_name['name']) {
+    echo json_encode(["name" => $fam_name['name'], "children" => $fam_name['children'], "adults" => $fam_name['adults']]);
     addAttempt($clientIP);
     resetAttempts($clientIP);
 } else {

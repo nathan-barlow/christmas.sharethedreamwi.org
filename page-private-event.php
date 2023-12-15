@@ -93,13 +93,14 @@
             <table class="table-families table-editable">
                 <thead>
                     <tr>
+                        <td class=""></td>
                         <td class="fam-number">#</td>
                         <td class="fam-reservation">Time</td>
-                        <td class="fam-code">Code</td>
-                        <td class="fam-name">Name</td>
-                        <td class="fam-phone">Phone</td>
-                        <td class="fam-email">Email</td>
+                        <td class="fam-code">Code &nbsp;<i class="bi bi-pencil c-gray400"></i></td>
+                        <td class="fam-name">First Name</td>
+                        <td class="fam-name">Last Name</td>
                         <td class="fam-kids">Kids</td>
+                        <td class="fam-kids">Adults</td>
                         <td class="fam-gift">Gift</td>
                         <td class="fam-here">Here</td>
                         <td class="fam-left">Left</td>
@@ -119,6 +120,58 @@
         </section>
         <?php endwhile; else: endif; ?>
     </div>
+
+    <dialog id="edit-family">
+        <h2><span id="fam-name"></span></h2>
+        <div class="grid grid-2 grid-xs">
+            <div class="flex flex-xs">
+                <i class="c-main500 bi bi-hash"></i>
+                <span id="fam-number"></span>
+            </div>
+            <div class="flex flex-xs">
+                <i class="c-main500 bi bi-upc"></i>
+                <span id="fam-code"></span>
+            </div>
+            <div class="flex flex-xs">
+                <i class="c-main500 bi bi-telephone"></i>
+                <span id="fam-phone"></span>
+            </div>
+            <div class="flex flex-xs">
+                <i class="c-main500 bi bi-envelope"></i>
+                <span id="fam-email"></span>
+            </div>
+            <div class="flex flex-xs">
+                <i class="c-main500 bi bi-gift"></i>
+                <span id="fam-gift"></span>
+            </div>
+            <div class="flex flex-xs">
+                <i class="c-main500 bi bi-clock"></i>
+                <span id="fam-reservation"></span>
+            </div>
+            <div class="flex flex-xs">
+                <i class="c-main500 bi bi-calendar"></i>
+                <span id="fam-registerdate"></span>
+            </div>
+            <div class="flex flex-xs">
+                <i class="c-main500 bi bi-info"></i>
+                <span id="fam-access"></span>
+            </div>
+            <div class="span-2 flex flex-xs">
+                <i class="c-main500 bi bi-people"></i>
+                <span id="fam-members"></span>
+            </div>
+        </div>
+
+        <label for="fam-notes">Notes</label>
+        <textarea class="vertical-resize" name="fam-notes" id="fam-notes" type="text" required></textarea>
+
+        <div class="flex flex-sm justify-right">
+            <button class="button-gray-100" type="button" onclick="document.getElementById('edit-family').close();">Cancel</button>
+            <button class="button-gray-150" onclick="submitNotes()">Save</button>
+            <button class="button button-main-500" id="save-and-mark-here" onclick="submitNotes(andMarkHere = true)">Save and Mark Here</button>
+        </div>
+        </form>
+    </dialog>
 </main>
 
 <script type="text/javascript" src="/wp-content/themes/communitychristmasfoxcities.org/js/private.js"></script>
@@ -295,6 +348,11 @@
 
         let newCard = `
             <tr id="family-${family['fam_number']}" class="family-row" data-here="${family['attended']}" data-left="${family['picked_up']}" data-checked-in-online="${family['checked_in_online']}">
+                <td>
+                    <button class="edit-family button-toggle button button-transparent" onclick="getFamily(${family['fam_number']})" title="Add Notes">
+                        <i class="bi bi-arrows-angle-expand"></i>
+                    </button>
+                </td>
                 <td class="fam-number">
                     <a title="View ${family['fam_name']} Family" href="/private-registered-families#family-${family['fam_number']}">
                         ${family['fam_number']}
@@ -307,20 +365,22 @@
                     </a>
                 </td>
                 <td class="fam-name">
+                    ${family['first_name']}
+                </td>
+                <td class="fam-name">
                     ${family['fam_name']}
                     <button hidden data-text="${family['notes']}" class="button-mini button-icon-only tooltip button-gray-100"><i class="bi bi-chat-text"></i></button>
                 </td>
-                <td class="fam-phone">${family['fam_phone']}</td>
-                <td class="fam-email" title="${family['fam_email']}">${family['fam_email']}</td>
                 <td class="fam-kids">${family['fam_kids']}</td>
+                <td class="fam-kids">${family['fam_adults']}</td>
                 <td class="fam-gift">${family['fam_gift']}</td>
                 <td class="fam-here">
-                    <button class="edit-family button-toggle button button-white button-here" onclick="toggleFamily(${family['fam_number']}, 'here')" title="mark here">
+                    <button class="edit-family button-toggle button button-transparent button-here" onclick="toggleFamily(${family['fam_number']}, 'here')" title="mark here">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </button>
                 </td>
                 <td class="fam-left">
-                    <button class="edit-family button-toggle button button-white button-left" onclick="toggleFamily(${family['fam_number']}, 'left')" title="mark picked up gift">
+                    <button class="edit-family button-toggle button button-transparent button-left" onclick="toggleFamily(${family['fam_number']}, 'left')" title="mark picked up gift">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </button>
                 </td>
@@ -478,6 +538,108 @@
         totalOnline.innerText = numOnline;
         totalFamiliesServed.innerText = numServed;
     };
+
+    function getFamily(id) {
+        let formData = new FormData();
+        formData.append('fam-id', id);
+
+        let url = 'https://registration.christmas.sharethedreamwi.org/private/fetch-family.php';
+        let headers = new Headers();
+        headers.set('Authorization', 'Basic ' + btoa(user + ":" + pass));
+
+        fetch(url, { method: 'POST', body: formData, headers: headers })
+        .then(function (response) {
+            return response.text();
+        })
+        .then(function (body) {
+            if(body != "[]") {
+                let retrievedFamily = JSON.parse(body);
+                console.log(retrievedFamily);
+                openFamily(retrievedFamily);
+            } else {
+                let message = "<div class='message message-error'><p>Unable to retrieve data for family number " + id + ". If you are certain that family number " + id + " exists, please contact site administrator.</p><p><a class='inline-link' href='/private-registrations'>Go back to registered families?</a></p></div>";
+                document.querySelector("h1").insertAdjacentHTML("beforebegin", message);
+            }
+        });
+    }
+
+    function openFamily(fam) {
+        let familyInfo = {
+            fam_name : document.getElementById('fam-name'),
+            fam_number : document.getElementById('fam-number'),
+            fam_code : document.getElementById('fam-code'),
+            fam_phone : document.getElementById('fam-phone'),
+            fam_email : document.getElementById('fam-email'),
+            fam_gift : document.getElementById('fam-gift'),
+            fam_reservation : document.getElementById('fam-reservation'),
+            fam_registerdate : document.getElementById('fam-registerdate'),
+            fam_access : document.getElementById('fam-access'),
+            fam_notes : document.getElementById('fam-notes'),
+            fam_members : document.getElementById('fam-members'),
+        }
+
+        let members = "";
+
+        fam.members.forEach(person => {
+            members += `${person.name} (${person.age}) `;
+        });
+
+        familyInfo.fam_name.innerText = fam.fam_name;
+        familyInfo.fam_number.innerText = fam.fam_number;
+        familyInfo.fam_code.innerText = fam.fam_code;
+        familyInfo.fam_phone.innerText = fam.fam_phone;
+        familyInfo.fam_email.innerText = fam.fam_email;
+        familyInfo.fam_gift.innerText = fam.fam_gift;
+        familyInfo.fam_reservation.innerText = fam.fam_reservation;
+        familyInfo.fam_registerdate.innerText = fam.register_date;
+        familyInfo.fam_access.innerText = fam.access;
+        familyInfo.fam_members.innerText = members;
+        familyInfo.fam_notes.value = fam.notes;
+
+        if(fam.attended != "") {
+            document.getElementById("save-and-mark-here").style.display = "none";
+        }
+
+        document.getElementById('edit-family').showModal();
+    }
+
+    function submitNotes(andMarkHere = false) {
+        let familyInfo = {
+            fam_number : document.getElementById('fam-number').innerText,
+            fam_notes : document.getElementById('fam-notes').value
+        }
+
+        let formData = new FormData();
+        formData.append('number', familyInfo.fam_number);
+        formData.append('notes', familyInfo.fam_notes);
+
+        let url = 'https://registration.christmas.sharethedreamwi.org/private/update-family-event.php';
+        let headers = new Headers();
+        headers.set('Authorization', 'Basic ' + btoa(user + ":" + pass));
+
+        fetch(url, { method: 'POST', body: formData, headers: headers })
+        .then(function (response) {
+            return response.text();
+        })
+        .then(function (body) {
+            if(body == "true") {
+                let recentAction = document.getElementById("recent-action");
+                recentAction.innerHTML = ("<i class='bi bi-clock-history'></i><b>#" + familyInfo.fam_number + "</b> " + "notes updated");
+                recentAction.classList.remove("hidden");
+                recentAction.setAttribute("href", "#family-" + familyInfo.fam_number);
+
+                fetchFamilies();
+
+                if(andMarkHere) {
+                    toggleFamily(familyInfo.fam_number, "here");
+                }
+
+                document.getElementById('edit-family').close();
+            } else {
+                console.error(body);
+            }
+        });
+    }
 </script>
 
 

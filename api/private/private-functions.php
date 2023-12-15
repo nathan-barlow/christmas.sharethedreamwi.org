@@ -139,6 +139,7 @@ function getFamiliesEvent() {
     $query_families = mysqli_query($conn,
         "SELECT
             rf.family_id as FAMILY_CODE,
+            rm.first_name as FIRST_NAME,
             rf.family_name as LAST_NAME,
             rf.phone as PHONE,
             rf.email as EMAIL,
@@ -149,9 +150,10 @@ function getFamiliesEvent() {
             rf.reservation as RESERVATION,
             rf.notes as NOTES,
             rf.checked_in_online as CHECKED_IN_ONLINE,
-            COUNT(rm.member_id) as CHILDREN
+            COUNT(CASE WHEN rm.age < 18 THEN 1 END) as CHILDREN,
+            COUNT(CASE WHEN rm.age >= 18 THEN 1 END) as ADULTS
         FROM registered_families rf
-        LEFT JOIN registered_members rm ON rf.family_id = rm.family_id AND rm.age < 18
+        LEFT JOIN registered_members rm ON rf.family_id = rm.family_id
         GROUP BY rf.family_id
         ORDER BY rf.picked_up, rf.attended, rf.reservation, rf.family_name;");
 
@@ -171,10 +173,12 @@ function getFamiliesEvent() {
     $i = 0;
     while($row = mysqli_fetch_array($query_families)){
         $data[$row["FAMILY_NUMBER"]]["fam_code"] = htmlspecialchars($row["FAMILY_CODE"]);
+        $data[$row["FAMILY_NUMBER"]]["first_name"] = htmlspecialchars($row["FIRST_NAME"]);
         $data[$row["FAMILY_NUMBER"]]["fam_name"] = htmlspecialchars($row["LAST_NAME"]);
         $data[$row["FAMILY_NUMBER"]]["fam_phone"] = htmlspecialchars($row["PHONE"]);
         $data[$row["FAMILY_NUMBER"]]["fam_number"] = $row["FAMILY_NUMBER"];
         $data[$row["FAMILY_NUMBER"]]["fam_email"] = htmlspecialchars($row["EMAIL"]);
+        $data[$row["FAMILY_NUMBER"]]["fam_adults"] = htmlspecialchars($row["ADULTS"]);
         $data[$row["FAMILY_NUMBER"]]["fam_kids"] = htmlspecialchars($row["CHILDREN"]);
         $data[$row["FAMILY_NUMBER"]]["fam_gift"] = htmlspecialchars($row["GIFT"]);
         $data[$row["FAMILY_NUMBER"]]["fam_reservation"] = htmlspecialchars($row["RESERVATION"]);
@@ -300,6 +304,25 @@ function toggleFamily($number, $action) {
         echo "true";
     }
     $toggle_query->close();
+    $conn->close();
+}
+
+function updateNotes($number, $notes) {
+    $conn = dbConnect('read');
+
+    $updateNotes_query = $conn->prepare("UPDATE registered_families
+        SET notes = ?
+        WHERE family_number = ?");
+
+    $updateNotes_query->bind_param("ss", $notes, $number);
+    $updateNotes_query->execute();
+
+    if($updateNotes_query->error == "") {
+        echo "true";
+    } else {
+        echo "failed to update: " . $updateNotes_query->error;
+    }
+    $updateNotes_query->close();
     $conn->close();
 }
 

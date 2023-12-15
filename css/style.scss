@@ -450,6 +450,10 @@ dialog {
       }
    }
 
+   textarea {
+      line-height: 1.7;
+   }
+
    input[type="text"],
    input[type="email"],
    input[type="tel"],
@@ -1009,6 +1013,7 @@ dialog {
 
          td.fam-name {
             min-width: 160px;
+            width: 50%;
             position: relative;
          }
 
@@ -1041,12 +1046,15 @@ dialog {
          }
       }
 
-      .family-card,
-      .family-row {
+      .family-card {
          border-radius: var(--br-small);
          padding: 1.5rem;
          background-color: white;
          border: 1px solid var(--color-gray-300);
+      }
+
+      .family-card,
+      .family-row {
          transition: transform 300ms cubic-bezier(0.8, 0, 0.2, 1);
          //position: relative;
          scroll-margin-top: 8.4rem;
@@ -1140,7 +1148,7 @@ dialog {
 
          &:not([data-here=""]) {
             --color-bkgd: var(--color-warning-100);
-            --color-frgd: var(--color-warning-500);
+            --color-frgd: black;
 
             .button-here {
                svg {

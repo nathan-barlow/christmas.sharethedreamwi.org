@@ -22,7 +22,16 @@ get_header('archive');
             </span>
             <div class="form-error" id="error-fam-code"></div>
 
-            <button id="submit-button" class="button-main-500" hidden>Check in <span id="fam-name"></span>family</button>
+            <span id="hidden-info" hidden>
+                <div class="message">
+                    <p>We are assuming you have the following people in attendance. If your attending family does not match your registration, you MUST check-in at the registration counter.</p>
+                    <div class="flex">
+                        <p class="flex flex-sm"><strong>Children</strong> <span id="children"></p>
+                        <p class="flex flex-sm"><strong>Adults</strong> <span id="adults"></p>
+                    </div>
+                </div>
+                <button id="submit-button" class="button-main-500">Check in <span id="fam-name"></span>family</button>
+            </span>
 
             <i class="c-gray400 margin-top" id="message-fam-code"></i>
         </form>
@@ -35,6 +44,9 @@ get_header('archive');
     const errorFamilyCode = document.getElementById("error-fam-code");
     const messageFamilyCode = document.getElementById("message-fam-code");
     const buttonSubmit = document.getElementById("submit-button");
+    const hiddenInfo = document.getElementById("hidden-info");
+    const children = document.getElementById("children");
+    const adults = document.getElementById("adults");
     const famName = document.getElementById("fam-name");
     const form = document.getElementById('check-in-form');
     const storedCode = localStorage.getItem("std2023_family_code");
@@ -63,15 +75,18 @@ get_header('archive');
                     errorFamilyCode.style.display = "block";
                     errorFamilyCode.innerText = "Too many failed attempts. Please check in at the registration table.";
                 } else {
+                    let famInfo = JSON.parse(body);
                     errorFamilyCode.style.display = "none";
-                    famName.innerText = body + " ";
-                    buttonSubmit.style.display = "block";
+                    famName.innerText = famInfo.name + " ";
+                    children.innerText = famInfo.children;
+                    adults.innerText = famInfo.adults;
+                    hiddenInfo.style.display = "block";
                 }
             });
         } else {
             errorFamilyCode.innerText = "";
             messageFamilyCode.innerText = "";
-            buttonSubmit.style.display = "none";
+            hiddenInfo.style.display = "none";
         }
     });
 
@@ -100,7 +115,7 @@ get_header('archive');
                 form.insertAdjacentHTML("beforebegin", `
                     <div class="message message-success">
                         <h2>${familyData.number}</h2>
-                        ${familyData.name} family successfully checked in! Please bypass the registration table and show your phone to the next volunteer to enter the event.<br><br>
+                        ${familyData.name} family successfully checked in! Your family can bypass the line, show your screen at the registration table, and enjoy the event. Please leave this web page open - when you are ready to pick up your gifts, show your screen with your family number to the volunteers at the family gift table.<br><br>
                         <strong>Family Code: </strong>${familyData.code}
                     </div>`)
             }
@@ -108,10 +123,20 @@ get_header('archive');
     }
 
     addEventListener("DOMContentLoaded", (event) => {
+        // Get the current URL
+        let params = new URL(document.location).searchParams;
+        urlFamilyCode = params.get("code");
+
+        console.log(urlFamilyCode);
+
         if (storedNumber) {
             let heading = document.querySelector("h1");
             let message = `<div class="message message-success">Your family is already checked in! Family Number: <strong>${storedNumber}</strong><div>`;
             heading.insertAdjacentHTML("beforebegin", message);
+        } else if(urlFamilyCode) {
+            familyCode.value = urlFamilyCode;
+            messageFamilyCode.innerText = "Family code retrieved from your email registration."
+            familyCode.dispatchEvent(new Event('input'));
         } else if(storedCode) {
             familyCode.value = storedCode;
             messageFamilyCode.innerText = "Family code retrieved from your local device storage."
