@@ -28,7 +28,8 @@ function getFamilyName($code) {
             rf.family_number as family_number,
             rf.family_name as family_name,
             COUNT(CASE WHEN rm.age < 18 THEN 1 END) as children,
-            COUNT(CASE WHEN rm.age >= 18 THEN 1 END) as adults
+            COUNT(CASE WHEN rm.age >= 18 THEN 1 END) as adults,
+            rf.attended as here
         FROM registered_families rf
         LEFT JOIN registered_members rm ON rf.family_id = rm.family_id
         WHERE rf.family_id = ?");
@@ -43,7 +44,8 @@ function getFamilyName($code) {
             "name"    => htmlspecialchars($row['family_name']),
             "number"  => htmlspecialchars($row['family_number']),
             "children"  => htmlspecialchars($row['children']),
-            "adults"  => htmlspecialchars($row['adults'])];
+            "adults"  => htmlspecialchars($row['adults']),
+            "here"  => htmlspecialchars($row['here'])];
     } else {
         return false;
     }
@@ -77,9 +79,13 @@ if ($attemptCount > 20) {
         echo "error";
     }
 } else if($fam_name['name']) {
-    echo json_encode(["name" => $fam_name['name'], "children" => $fam_name['children'], "adults" => $fam_name['adults']]);
-    addAttempt($clientIP);
-    resetAttempts($clientIP);
+    if($fam_name['here'] != 0) {
+        echo "already";
+    } else {
+        echo json_encode(["name" => $fam_name['name'], "children" => $fam_name['children'], "adults" => $fam_name['adults'], "here" => $fam_name['here']]);
+        addAttempt($clientIP);
+        resetAttempts($clientIP);
+    }
 } else {
     usleep($delay);
     echo "invalid";

@@ -77,6 +77,10 @@
    margin-top: var(--gap-sm);
 }
 
+.margin-left-sm {
+   margin-left: var(--gap-sm);
+}
+
 .float-right {
    float: right;
 }
@@ -129,6 +133,11 @@
 
    &.grid-center {
       align-items: center;
+   }
+
+   &.grid-columns {
+      grid-gap: 0;
+      column-gap: var(--gap);
    }
 }
 

@@ -74,8 +74,12 @@ get_header('archive');
                     console.log(body);
                     errorFamilyCode.style.display = "block";
                     errorFamilyCode.innerText = "Too many failed attempts. Please check in at the registration table.";
+                } else if (body == "already") {
+                    errorFamilyCode.style.display = "block";
+                    errorFamilyCode.innerText = "Family already checked in.";
                 } else {
                     let famInfo = JSON.parse(body);
+                    console.log(famInfo.here);
                     errorFamilyCode.style.display = "none";
                     famName.innerText = famInfo.name + " ";
                     children.innerText = famInfo.children;
@@ -109,7 +113,10 @@ get_header('archive');
             } else {
                 let familyData = JSON.parse(body);
 
-                localStorage.setItem("std2023_family_number", familyData.number);
+                let oldFamilyNumber = localStorage.getItem("std2023_family_number");
+                let newFamilyNumber = oldFamilyNumber + ", " + familyData.number;
+
+                localStorage.setItem("std2023_family_number", newFamilyNumber);
 
                 form.style.display = "none";
                 form.insertAdjacentHTML("beforebegin", `
@@ -126,8 +133,6 @@ get_header('archive');
         // Get the current URL
         let params = new URL(document.location).searchParams;
         urlFamilyCode = params.get("code");
-
-        console.log(urlFamilyCode);
 
         if (storedNumber) {
             let heading = document.querySelector("h1");

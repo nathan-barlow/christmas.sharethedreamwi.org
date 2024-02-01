@@ -90,7 +90,8 @@ function getFamily($number) {
             registered_members.gift_preference as GIFT
         FROM registered_families
         JOIN registered_members ON (registered_families.family_id = registered_members.family_id)
-        WHERE family_number = ?");
+        WHERE family_number = ?
+        ORDER BY registered_members.age DESC");
 
     if ($stmt = mysqli_prepare($conn, $query)) {
         mysqli_stmt_bind_param($stmt, "i", $number);
@@ -155,7 +156,7 @@ function getFamiliesEvent() {
         FROM registered_families rf
         LEFT JOIN registered_members rm ON rf.family_id = rm.family_id
         GROUP BY rf.family_id
-        ORDER BY rf.picked_up, rf.attended, rf.reservation, rf.family_name;");
+        ORDER BY rf.picked_up, rf.attended, rf.reservation, rf.family_name, rm.first_name;");
 
     $query_people = mysqli_query($conn,
         "SELECT COUNT(*) AS member_count

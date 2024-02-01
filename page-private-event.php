@@ -103,7 +103,7 @@
                         <td class="fam-kids">Adults</td>
                         <td class="fam-gift">Gift</td>
                         <td class="fam-here">Here</td>
-                        <td class="fam-left">Left</td>
+                        <td class="fam-left">Card</td>
                     </tr>
                 </thead>
                 <tbody id="table-families"></tbody>
@@ -158,7 +158,7 @@
             </div>
             <div class="span-2 flex flex-xs">
                 <i class="c-main500 bi bi-people"></i>
-                <span id="fam-members"></span>
+                <span id="fam-members" class="grid grid-2 grid-columns"></span>
             </div>
         </div>
 
@@ -380,7 +380,7 @@
                     </button>
                 </td>
                 <td class="fam-left">
-                    <button class="edit-family button-toggle button button-transparent button-left" onclick="toggleFamily(${family['fam_number']}, 'left')" title="mark picked up gift">
+                    <button class="edit-family button-toggle button button-transparent button-left" onclick="toggleFamily(${family['fam_number']}, 'left')" title="mark card found">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </button>
                 </td>
@@ -581,7 +581,7 @@
         let members = "";
 
         fam.members.forEach(person => {
-            members += `${person.name} (${person.age}) `;
+            members += `<span>${person.name} (${person.age})</span>`;
         });
 
         familyInfo.fam_name.innerText = fam.fam_name;
@@ -593,11 +593,13 @@
         familyInfo.fam_reservation.innerText = fam.fam_reservation;
         familyInfo.fam_registerdate.innerText = fam.register_date;
         familyInfo.fam_access.innerText = fam.access;
-        familyInfo.fam_members.innerText = members;
+        familyInfo.fam_members.innerHTML = members;
         familyInfo.fam_notes.value = fam.notes;
 
         if(fam.attended != "") {
             document.getElementById("save-and-mark-here").style.display = "none";
+        } else {
+            document.getElementById("save-and-mark-here").style.display = "block";
         }
 
         document.getElementById('edit-family').showModal();

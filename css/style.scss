@@ -1729,8 +1729,13 @@ dialog {
                width: 30px;
             }
 
-            .flex {
-               text-align: center;
+            .button {
+               display: flex !important;
+
+               p {
+                  margin-right: auto;
+                  font-size: 0.8em !important;
+               }
             }
          }
 
